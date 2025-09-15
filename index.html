@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>產品標籤與條碼產生器</title>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+        }
+        .container {
+            flex-basis: 450px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: left;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin-top: 5px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        hr {
+            border: 0;
+            border-top: 1px solid #eee;
+            margin: 20px 0;
+        }
+
+        /* 標籤樣式 */
+        .label-preview-container {
+            flex-basis: 500px;
+            min-height: 200px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .product-label {
+            border: 1px solid #fff;
+            padding: 5px;
+            width: 400px;
+            margin: 0 auto;
+            background-color: #fff;
+        }
+        .label-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 5px;
+            border-bottom: 3px solid #008000;
+        }
+        .label-header .product-name {
+            font-size: 2.2em;
+            font-weight: bold;
+            flex-grow: 1;
+            text-align: center;
+            /* 強制文字不換行 */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .label-header .info-boxes {
+            display: flex;
+            gap: 5px;
+            align-items: flex-end;
+        }
+        .label-header .calories-box {
+            border: 1px solid black;
+            padding: 2px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1.2;
+            font-size: 0.8em;
+            /* 強制文字不換行 */
+            white-space: nowrap;
+        }
+        .label-header .calories-box span:nth-child(2) {
+            font-size: 1.5em;
+            font-weight: bold;
+        }
+        .label-header .price-box {
+            padding: 5px 10px;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #008000;
+            border: 3px solid #008000;
+            /* 強制文字不換行 */
+            white-space: nowrap;
+        }
+        .label-dates {
+            font-size: 1.1em;
+            margin-top: 5px;
+            display: flex;
+            justify-content: space-between;
+            /* 強制文字不換行 */
+            white-space: nowrap;
+        }
+        .label-dates .expiry-date-text {
+            border-bottom: 1px solid #000;
+        }
+        .label-barcode {
+            text-align: center;
+            margin-top: 5px;
+        }
+        .label-barcode svg {
+            width: 100%;
+            height: 50px;
+        }
+        .label-barcode-text {
+            font-size: 1.1em;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-top: 5px;
+            /* 強制文字不換行 */
+            white-space: nowrap;
+        }
+        .warning-text {
+            font-size: 0.8em;
+            color: #888;
+            text-align: right;
+            margin-top: 5px;
+        }
+        
+        /* 列印樣式 */
+        @media print {
+            body > *:not(.label-preview-container) {
+                display: none;
+            }
+            .label-preview-container {
+                width: 100%;
+                margin: 0;
+                box-shadow: none;
+                border: none;
+            }
+            .product-label {
+                border: 1px solid #000;
+            }
+        }
+
+        /* 響應式設計 - 手機版樣式 */
+        @media (max-width: 600px) {
+            body {
+                flex-direction: column;
+                align-items: center;
+            }
+            .container,
+            .label-preview-container {
+                flex-basis: 100%;
+                width: 90%;
+                margin-bottom: 20px;
+            }
+            .product-label {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>標籤資料輸入</h1>
+    <div class="input-group">
+        <label for="productName">品名：</label>
+        <input type="text" id="productName" oninput="updateLabel()" placeholder="請輸入品名" value="雙蔬鮪魚飯糰">
+    </div>
+    <div class="input-group">
+        <label for="calories">熱量：</label>
+        <input type="number" id="calories" oninput="updateLabel()" placeholder="請輸入熱量 (大卡)" value="250">
+    </div>
+    <div class="input-group">
+        <label for="price">價格：</label>
+        <input type="number" id="price" oninput="updateLabel()" placeholder="請輸入價格 (元)" value="30">
+    </div>
+    <hr>
+    <div class="input-group">
+        <label for="itemNumber">貨號（8碼）：</label>
+        <input type="text" id="itemNumber" maxlength="8" oninput="updateLabel()" placeholder="請輸入8碼貨號" value="26005652">
+    </div>
+    <div class="input-group">
+        <label for="batchCode">配別（1碼）：</label>
+        <select id="batchCode" onchange="updateLabel()">
+            <option value="1">1 (24時)</option>
+            <option value="3">3 (3時)</option>
+            <option value="6">6 (17時)</option>
+        </select>
+    </div>
+    <div class="input-group">
+        <label for="productionDate">製造日期：</label>
+        <input type="date" id="productionDate" onchange="updateLabel()" value="2025-09-15">
+    </div>
+    <div class="input-group">
+        <label for="expiryDate">有效日期：</label>
+        <input type="date" id="expiryDate" onchange="calculateExpiryDay(); updateLabel();" value="2025-09-16"> 
+    </div>
+    
+    <button onclick="window.print()">列印標籤</button>
+</div>
+
+<div class="label-preview-container">
+    <h1>標籤預覽</h1>
+    <div class="product-label" id="productLabel">
+        <div class="label-header" id="headerLine">
+            <div class="product-name" id="labelProductName">**品名**</div>
+            <div class="info-boxes">
+                <div class="calories-box">
+                    <span>熱量</span>
+                    <span id="labelCalories">0</span>
+                    <span>大卡</span>
+                </div>
+                <div class="price-box" id="priceBox">0 元</div>
+            </div>
+        </div>
+        <div class="label-dates">
+            <span id="labelProductionDate">製造日期:</span>
+            <span id="labelExpiryDate">有效日期:</span>
+        </div>
+        <div class="label-barcode">
+            <svg id="barcode"></svg>
+            <div class="label-barcode-text" id="labelBarcodeText"></div>
+            <div class="warning-text">警告標語::測試用無法結帳:請自行使用</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function calculateExpiryDay() {
+        const expiryDateInput = document.getElementById('expiryDate').value;
+        if (!expiryDateInput) return '';
+
+        const expiryDate = new Date(expiryDateInput);
+        const startOfYear = new Date(expiryDate.getFullYear(), 0, 0);
+        const diff = expiryDate - startOfYear;
+        const oneDay = 1000 * 60 * 60 * 24;
+        const dayOfYear = Math.floor(diff / oneDay);
+        
+        return String(dayOfYear).padStart(3, '0');
+    }
+
+    function calculateEAN13Checksum(code) {
+        if (code.length !== 12) return null;
+        
+        let sum = 0;
+        for (let i = 0; i < 12; i++) {
+            const digit = parseInt(code[i], 10);
+            if ((i + 1) % 2 !== 0) {
+                sum += digit;
+            } else {
+                sum += digit * 3;
+            }
+        }
+        
+        const remainder = sum % 10;
+        return remainder === 0 ? 0 : 10 - remainder;
+    }
+
+    function updateLabel() {
+        const productName = document.getElementById('productName').value || '**品名**';
+        const calories = document.getElementById('calories').value || '0';
+        const price = document.getElementById('price').value || '0';
+        const itemNumber = document.getElementById('itemNumber').value;
+        const batchCode = document.getElementById('batchCode').value;
+        const productionDate = document.getElementById('productionDate').value;
+        const expiryDate = document.getElementById('expiryDate').value;
+
+        // 更新標籤上的文字資訊
+        document.getElementById('labelProductName').textContent = productName;
+        document.getElementById('labelCalories').textContent = calories;
+        document.getElementById('priceBox').textContent = price + ' 元';
+        // 根據配別碼調整價格框和橫線顏色
+        const priceBox = document.getElementById('priceBox');
+        const headerLine = document.getElementById('headerLine');
+        let color = '#008000'; // 預設綠色
+        switch(batchCode) {
+            case '1':
+                color = '#000000'; // 黑色
+                break;
+            case '3':
+                color = '#FFA500'; // 橘色
+                break;
+            case '6':
+                color = '#008000'; // 綠色
+                break;
+        }
+        priceBox.style.borderColor = color;
+        priceBox.style.color = color;
+        headerLine.style.borderBottomColor = color;
+
+
+
+        // 格式化日期為 YYYY.MM.DD
+        const formattedProductionDate = productionDate ? productionDate.replace(/-/g, '.') : '';
+        const formattedExpiryDate = expiryDate ? expiryDate.replace(/-/g, '.') : '';
+        
+        let expiryTimeSuffix = '';
+        if (batchCode === '1') {
+            expiryTimeSuffix = ' 24時';
+        } else if (batchCode === '3') {
+            expiryTimeSuffix = ' 3時';
+        } else if (batchCode === '6') {
+            expiryTimeSuffix = ' 17時';
+        }
+
+        document.getElementById('labelProductionDate').textContent = `製造日期:${formattedProductionDate}`;
+        document.getElementById('labelExpiryDate').textContent = `有效日期: ${formattedExpiryDate}${expiryTimeSuffix}`;
+
+
+        // 檢查條碼必填欄位
+        if (itemNumber.length !== 8 || batchCode.length !== 1 || !expiryDate) {
+            JsBarcode("#barcode", "0", { displayValue: false, format: "EAN13" });
+            document.getElementById('labelBarcodeText').textContent = '請輸入完整資訊';
+            return;
+        }
+
+        const expiryDay = calculateExpiryDay();
+        const twelveDigits = itemNumber + expiryDay + batchCode;
+        const checkDigit = calculateEAN13Checksum(twelveDigits);
+        const fullBarcode = twelveDigits + checkDigit;
+        
+        // 生成條碼
+        try {
+            JsBarcode("#barcode", fullBarcode, {
+                format: "EAN13",
+                displayValue: false,
+                width: 5,
+                height: 60
+            });
+            document.getElementById('labelBarcodeText').textContent = fullBarcode;
+        } catch (error) {
+            document.getElementById('labelBarcodeText').textContent = '條碼產生錯誤';
+        }
+    }
+
+    // 頁面載入時先執行一次，以顯示初始畫面
+    document.addEventListener('DOMContentLoaded', updateLabel);
+</script>
+
+</body>
+</html>
