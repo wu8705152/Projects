@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>產品標籤與條碼產生器</title>
+    <title>timecontrol_barcode</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
     <style>
         body {
@@ -228,8 +228,7 @@
         <label for="expiryDate">有效日期：</label>
         <input type="date" id="expiryDate" onchange="calculateExpiryDay(); updateLabel();" value="2025-09-16"> 
     </div>
-    
-    <button onclick="window.print()">列印標籤</button>
+
 </div>
 
 <div class="label-preview-container">
@@ -371,4 +370,5 @@
 </script>
 
 </body>
+
 </html>
