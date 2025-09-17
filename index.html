@@ -845,10 +845,10 @@
     //自動匹配乞丐時段
     function i_time_(scanner_code){
         const scannedItemNumber = scanner_code.substring(0, 8);
-        var batchCode = scanner_code.substring(11, 12);
+        var scannedbatchCode = scanner_code.substring(11, 12);
         const batchCodeSelect = document.getElementById('batchCode');
         const optionExists = Array.from(batchCodeSelect.options).some(option => option.value === batchCode);
-        batchCodeSelect.value = scannedBatchCode;
+
                 
 
     if (！scanner_code.startsWith("2")) {
@@ -858,7 +858,7 @@
     }else if(!optionExists){
             showCustomAlert(`${code}無法辨識配別</br>請自行選擇配別`);
     }
-    document.getElementById('batchCode').value = batchCode;
+    document.getElementById('batchCode').value = scannedbatchCode;
     //將掃描到的條碼前8碼填入貨號輸入框
     itemNumberInput.value = scannedItemNumber;
         
