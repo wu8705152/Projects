@@ -458,7 +458,7 @@
    <!-- <button onclick="window.print()">列印標籤</button> -->
 </div>
 
-<div class="label-preview-container">
+<div class="label-preview-container" id="label_preview">
     <h1>標籤預覽(測試用)</h1>
     <div class="product-label" id="productLabel">
         <div class="label-header" id="headerLine">
@@ -739,7 +739,13 @@
                 console.log("沒有匹配到任何值");
          }
         updateLabel();
-        window.scrollTo(0, document.body.scrollHeight);
+        const targetDiv = document.getElementById('label_preview');
+        if (targetDiv) {
+            targetDiv.scrollIntoView({
+                behavior: 'smooth', // 選擇平滑滾動效果
+                block: 'start'      // 將元素的頂部對齊到視窗的頂部
+            });
+        }
     }
     // 頁面載入時先執行一次，並自動填入日期和鏡頭列表
     document.addEventListener('DOMContentLoaded', () => {
