@@ -813,12 +813,12 @@
                 itemNumberInput.value = scannedItemNumber;
                 const batchCodeSelect = document.getElementById('batchCode');
                 const optionExists = Array.from(batchCodeSelect.options).some(option => option.value === scannedBatchCode);
-                
-                if (optionExists) {
+                 //判斷是否為鮮食條碼
+                if (optionExists && scanner_code.startsWith("2")) {
                     batchCodeSelect.value = scannedBatchCode;
                     i_time_(code)
                 } else {
-                    showCustomAlert(`${code}掃描到的配別碼 ${scannedBatchCode} 不在選單中。</br>請重新掃瞄並確認為時控條碼。`);
+                    showCustomAlert(`${code}無法辨識</br>請重新掃瞄並確認為時控條碼。`);
                 }
 
                 stopScanner();
@@ -862,7 +862,7 @@
         document.getElementById('batchCode').value = batchCode;
        // let now = new Date();
         //now.setHours(now.getHours() + 8);
-
+       
         const today = new Date();
         
         var currentHour = today.getHours();
