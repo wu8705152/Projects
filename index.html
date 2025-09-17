@@ -845,7 +845,7 @@
     //自動匹配乞丐時段
     function i_time_(scanner_code){
         const scannedItemNumber = scanner_code.substring(0, 8);
-        const batchCode = scanner_code.substring(11, 12);
+        var batchCode = scanner_code.substring(11, 12);
         const batchCodeSelect = document.getElementById('batchCode');
         const optionExists = Array.from(batchCodeSelect.options).some(option => option.value === batchCode);
         batchCodeSelect.value = scannedBatchCode;
