@@ -794,11 +794,10 @@
             Quagga.start();
             scannerRunning = true;
         });
-
+        let lastResult = null;
+        let sameCount = 0;
         Quagga.onDetected(function(result) {
             const code = result.codeResult.code;
-            let lastResult = null;
-            let sameCount = 0;
             if (code === lastResult) {
                 sameCount++;
               } else {
