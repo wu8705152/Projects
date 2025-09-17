@@ -686,12 +686,12 @@
     function i_time_(scanner_code){
         var batchCode = scanner_code.at(-2)
         document.getElementById('batchCode').value = batchCode;
-        let now = new Date();
-        now.setHours(now.getHours() + 8);
+       // let now = new Date();
+        //now.setHours(now.getHours() + 8);
 
         const today = new Date();
         
-        var currentHour = now.getHours();
+        var currentHour = today.getHours();
         const futureDate = new Date(today);
         futureDate.setDate(today.getDate() + 1);
         const todayString = today.toISOString().split('T')[0];
@@ -745,7 +745,7 @@
         document.getElementById('expiryDate').value = futureDateString;
         updateLabel();
         populateCameraList(); // 載入鏡頭列表
-        i_time_('2600565225932')
+        //i_time_('2600565225932')
     });
 
 //錯誤
