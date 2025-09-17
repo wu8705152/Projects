@@ -872,7 +872,7 @@
         futureDate.setDate(today.getDate() + 1);
         const todayString = today.toISOString().split('T')[0];
         const futureDateString = futureDate.toISOString().split('T')[0];
-        switch (batchCode) {
+        switch (scannedbatchCode) {
             case '1': {
                 document.getElementById('expiryDate').value = todayString;
                if (currentHour >=19 && currentHour < 24) {
