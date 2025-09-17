@@ -198,34 +198,58 @@
                 font-size: 0.9em;
             }
         }
-        /* 條碼掃描器樣式 */
-#scanner-container {
+/* 條碼掃描器樣式 */
+ #scanner-container {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.9);
-    display: none; /* 預設隱藏 */
+    display: none;
     justify-content: center;
     align-items: center;
     flex-direction: column;
-    z-index: 1000;
+    z-index: 999;
 }
 #interactive.viewport {
     position: relative;
-    /* 移除 margin-top，讓其自然靠上 */
+    /* 調整寬度為100%以填滿父容器 */
     width: 100%;
-    height: 60%;
+    /* 調整高度以顯示完整的掃描畫面 */
+    height: 70vh;
 }
 canvas.drawing, video.drawing {
     position: absolute;
     top: 0;
-    bottom: 50px;
     left: 0;
     width: 100%;
-    height: 100%;
+    height: 50%;
 }
+.button-group {
+    display: flex;
+    justify-content: space-between;
+    width: 320px;
+    margin-top: 20px;
+    z-index: 1000;
+}
+#scanner-container button {
+    padding: 10px 20px;
+    width: auto;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    color: #fff;
+    background-color: #007bff;
+    margin: 0;
+}
+#scanner-container button#switchCameraBtn {
+    background-color: #28a745;
+}
+#scanner-container button:hover {
+    opacity: 0.9;
+}
+
 .modal-overlay {
 	position: fixed; /* 固定在視口中 */
 	top: 0;
@@ -499,8 +523,10 @@ canvas.drawing, video.drawing {
 </div>
 
 <div id="scanner-container">
-    <button onclick="stopScanner()">取消掃描</button>
     <div id="interactive" class="viewport"></div>
+    <div class="button-group">
+        <button onclick="stopScanner()">取消掃描</button>
+    </div>
 </div>
 <script>
     function calculateExpiryDay() {
@@ -633,11 +659,23 @@ canvas.drawing, video.drawing {
                 target: document.querySelector('#interactive'),
                 constraints: constraints
             },
-           decoder: {
-                // 僅設定偵測 EAN-13 格式
+            decoder: {
                 readers: ["ean_reader"]
+            },
+            // 使用裁切來設定掃描範圍
+            locate: true,
+            locator: {
+                patchSize: "medium",
+                halfSample: true
+            },
+            // 設定掃描框在畫面中的位置和大小
+            area: {
+                top: "20%",
+                right: "10%",
+                left: "10%",
+                bottom: "50%"
             }
-        }, function(err) {
+        },  function(err) {
             if (err) {
                 console.error(err);
                 alert("無法開啟鏡頭，請確認您的裝置權限。");
