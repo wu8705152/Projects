@@ -765,9 +765,11 @@
                 target: document.querySelector('#interactive'),
                 constraints: constraints
             },
+			
             decoder: {
-                readers: ["ean_reader"]
+                readers: ["ean_reader"],
             },
+			frequency: 20,
             // 使用裁切來設定掃描範圍
             locate: true,
             locator: {
@@ -976,4 +978,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
