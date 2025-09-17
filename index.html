@@ -769,10 +769,12 @@ const modalClearButton = document.getElementById('modalClearButton');
 function showCustomAlert(message) {
 	modalContent.innerHTML = message; // 將訊息內容放入模態視窗
 	customAlertModal.style.display = 'flex'; // 顯示模態視窗
+    document.body.style.overflow = 'hidden'; // 禁止頁面滑動
 }
 // 隱藏自定義模態視窗的函數
 function hideCustomAlert() {
 	customAlertModal.style.display = 'none'; // 隱藏模態視窗
+    document.body.style.overflow = 'auto'; 
 }
 
 // 為模態視窗的「清除」按鈕添加事件監聽器
@@ -790,6 +792,7 @@ const overlay = document.getElementById('popupOverlay');
 function show_info_alert(info_alert_content) {
     document.getElementById('info_alert_content').innerHTML = info_alert_content
     overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden'; // 禁止頁面滑動
 }
 
 /**
@@ -798,6 +801,7 @@ function show_info_alert(info_alert_content) {
 function hide_info_alert() {
     document.getElementById('info_alert_content').innerHTML = ""
     overlay.style.display = 'none';
+    document.body.style.overflow = 'auto'; 
 }
 
 // 監聽按鈕點擊事件
