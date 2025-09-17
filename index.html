@@ -798,16 +798,15 @@
         let sameCount = 0;
         Quagga.onDetected(function(result) {
             const code = result.codeResult.code;
-            if (code === lastResult) {
+            if(code === lastResult) {
                 sameCount++;
-              } else {
+              }else {
                 lastResult = code;
                 sameCount = 1;
               }
 
-            if (sameCount >= 3 && code && code.length === 13) {
+            if(sameCount >= 3 && code && code.length === 13) {
                 i_time_(code);
-                alert("00001");
                 stopScanner();
                 updateLabel();
             }
@@ -815,7 +814,7 @@
     }
 
     function stopScanner() {
-        if (scannerRunning) {
+        if(scannerRunning) {
             document.body.style.overflow = 'auto'; // 禁止頁面滑動
             Quagga.stop();
             scannerContainer.style.display = 'none';
