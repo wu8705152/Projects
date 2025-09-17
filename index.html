@@ -15,28 +15,54 @@
             justify-content: center;
             align-items: flex-start;
             gap: 20px;
-        }
-        .container {
-            flex-basis: 450px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: left;
-        }
+        } 
         h1 {
             text-align: center;
             color: #333;
             margin-bottom: 20px;
         }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
+
+.container {
+    max-width: 600px;
+    margin: auto;
+    font-family: Arial, sans-serif;
+}
+
+.input-group {
+    display: flex;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.input-group label {
+    width: 120px; /* 固定標籤寬度 */
+    font-weight: bold;
+}
+
+.input-group input,
+.input-group select {
+    flex: 1;
+    padding: 5px;
+    font-size: 14px;
+}
+
+/* 特別針對「熱量 + 價格」兩組並排 */
+.inline-group {
+    display: flex;
+    gap: 15px; /* 兩組間距 */
+    flex: 1;
+}
+
+.inline-group .field {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.inline-group .field label {
+    width: auto;
+    margin-right: 2px;
+}
         input, select, button {
             width: 100%;
             padding: 10px;
@@ -484,50 +510,60 @@
     </div>
 </div>
 <div class="container">
-    <h1>乞丐時光條碼搜尋器</h1>
-    <div class="input-group">
-        <label for="productName">品名：(選)</label>
-        <input type="text" id="productName" oninput="updateLabel()" placeholder="請輸入品名" value="*!!測試用*">
-    </div>
-    <div class="input-group">
-        <label for="calories">熱量：(選)</label>
-        <input type="number" id="calories" oninput="updateLabel()" placeholder="請輸入熱量 (大卡)" value="999">
-    </div>
-    <div class="input-group">
-        <label for="price">價格：(選)</label>
-        <input type="number" id="price" oninput="updateLabel()" placeholder="請輸入價格 (元)" value="999">
-    </div>
-    <hr>
-    <div class="input-group" id="cameraSelectGroup" style="display:none;">
-        <label for="cameraSelect">選擇鏡頭：</label>
-        <select id="cameraSelect"></select>
-    </div>
-    <div class="input-group">
-        <button onclick="startScanner()">掃描條碼</button>
-    </div>
-    <div class="input-group">
-        <label for="itemNumber"><span style="color: red;">※</span>貨號（8碼）：</label>
-        <input type="text" id="itemNumber" maxlength="8" oninput="updateLabel()" placeholder="請輸入8碼貨號" value="26005652">
-    </div>
+  <h1>乞丐時光條碼搜尋器</h1>
 
-    <div class="input-group">
-        <label for="batchCode"><span style="color: red;">※</span>配別（1碼）：</label>
-        <select id="batchCode" onchange="updateLabel()">
-            <option value="1">1 (24時)</option>
-            <option value="3">3 (3時)</option>
-            <option value="6">6 (17時)</option>
-        </select>
+  <div class="input-group">
+    <label for="productName">品名：</label>
+    <input type="text" id="productName" oninput="updateLabel()" placeholder="請輸入品名" value="*!!測試用*">
+  </div>
+
+  <div class="input-group">
+    <div class="inline-group">
+      <div class="field">
+        <label for="calories">熱量：</label>
+        <input type="number" id="calories" oninput="updateLabel()" placeholder="請輸入熱量 (大卡)" value="999">
+      </div>
+      <div class="field">
+        <label for="price">價格：</label>
+        <input type="number" id="price" oninput="updateLabel()" placeholder="請輸入價格 (元)" value="999">
+      </div>
     </div>
-    <div class="input-group">
-        <label for="productionDate">製造日期：(選)</label>
-        <input type="date" id="productionDate" onchange="updateLabel()" value="2025-09-15">
-    </div>
-    <div class="input-group">
-        <label for="expiryDate"><span style="color: red;">※</span>有效日期：</label>
-        <input type="date" id="expiryDate" onchange="calculateExpiryDay(); updateLabel();" value="2025-09-16"> 
-    </div>
-    
-   <!-- <button onclick="window.print()">列印標籤</button> -->
+  </div>
+
+  <hr>
+
+  <div class="input-group" id="cameraSelectGroup" style="display:none;">
+    <label for="cameraSelect">選擇鏡頭：</label>
+    <select id="cameraSelect"></select>
+  </div>
+
+  <div class="input-group">
+    <button onclick="startScanner()">掃描條碼</button>
+  </div>
+
+  <div class="input-group">
+    <label for="itemNumber"><span style="color: red;">※</span>貨號（8碼）：</label>
+    <input type="text" id="itemNumber" maxlength="8" oninput="updateLabel()" placeholder="請輸入8碼貨號" value="26005652">
+  </div>
+
+  <div class="input-group">
+    <label for="batchCode"><span style="color: red;">※</span>配別（1碼）：</label>
+    <select id="batchCode" onchange="updateLabel()">
+      <option value="1">1 (24時)</option>
+      <option value="3">3 (3時)</option>
+      <option value="6">6 (17時)</option>
+    </select>
+  </div>
+
+  <div class="input-group">
+    <label for="productionDate">製造日期：</label>
+    <input type="date" id="productionDate" onchange="updateLabel()" value="2025-09-15">
+  </div>
+
+  <div class="input-group">
+    <label for="expiryDate"><span style="color: red;">※</span>有效日期：</label>
+    <input type="date" id="expiryDate" onchange="calculateExpiryDay(); updateLabel();" value="2025-09-16">
+  </div>
 </div>
 
 <div class="label-preview-container" id="label_preview">
