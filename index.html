@@ -1,848 +1,84 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>timecontrol_barcode</title>
-    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 20px;
-        } 
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 20px;
-        }
-
-.container {
-    max-width: 600px;
-    margin: auto;
-    font-family: Arial, sans-serif;
-	padding: 20px;
-	border: 1px solid #ccc;
-	border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
-
-.input-group {
-    display: flex;
-    align-items: center;
-    margin: 8px 0;
-}
-
-.input-group label {
-    width: 120px; /* 固定標籤寬度 */
-    font-weight: bold;
-}
-
-.input-group input,
-.input-group select {
-    flex: 1;
-    padding: 5px;
-    font-size: 14px;
-}
-
-/* 特別針對「熱量 + 價格」兩組並排 */
-.inline-group {
-    display: flex;
-    gap: 15px; /* 兩組間距 */
-    flex: 1;
-}
-
-.inline-group .field {
-    display: flex;
-    align-items: center;
-    flex: 1;
-}
-
-.inline-group .field label {
-    width: auto;
-    margin-right: 2px;
-}
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            box-sizing: border-box;
-            border-radius: 4px;
-            border: 1px solid #ccc;
-            margin-top: 5px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        hr {
-            border: 0;
-            border-top: 1px solid #eee;
-            margin: 20px 0;
-        }
-
-        /* 標籤樣式 */
-        .label-preview-container {
-            flex-basis: 500px;
-            min-height: 200px;
-            padding: 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        }
-        .product-label {
-            border: 1px solid #fff;
-            padding: 5px;
-            width: 400px;
-            margin: 0 auto;
-            background-color: #fff;
-        }
-        .label-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 5px;
-            border-bottom: 3px solid #008000;
-        }
-        .label-header .product-name {
-            font-size: 2.2em;
-            font-weight: bold;
-            flex-grow: 1;
-            text-align: center;
-            /* 強制文字不換行 */
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .label-header .info-boxes {
-            display: flex;
-            gap: 5px;
-            align-items: flex-end;
-        }
-        .label-header .calories-box {
-            border: 1px solid black;
-            padding: 2px 5px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            line-height: 1.2;
-            font-size: 0.8em;
-            /* 強制文字不換行 */
-            white-space: nowrap;
-        }
-        .label-header .calories-box span:nth-child(2) {
-            font-size: 1.5em;
-            font-weight: bold;
-        }
-        .label-header .price-box {
-            padding: 5px 10px;
-            font-size: 1.5em;
-            font-weight: bold;
-            color: #008000;
-            border: 3px solid #008000;
-            /* 強制文字不換行 */
-            white-space: nowrap;
-        }
-        .label-dates {
-            font-size: 1.1em;
-            margin-top: 5px;
-            display: flex;
-            justify-content: space-between;
-            /* 強制文字不換行 */
-            white-space: nowrap;
-        }
-        .label-dates .expiry-date-text {
-            border-bottom: 1px solid #000;
-        }
-        .label-barcode {
-            text-align: center;
-            margin-top: 5px;
-        }
-        .label-barcode svg {
-            width: 100%;
-            height: 50px;
-        }
-    /*條碼下面文字*/
-.label-barcode-text {
-    letter-spacing: 10px; 
-    font-family: monospace; 
-    font-size: 20px;
-}
-.ean-left {
-    letter-spacing: 2px;  
-    margin-right: 10px;   
-}
-.ean-middle {
-    letter-spacing: 5px; 
-    margin-right: 10px;   
-}
-.ean-right {
-    letter-spacing: 5px;
-}
-.barcode-red-text {
-    color: red;
-}
-.warning-text {
-    font-size: 0.8em;
-    color: #888;
-    text-align: left;
-    margin-top: 5px;
-}
-        
-        /* 列印樣式 */
-        @media print {
-            body > *:not(.label-preview-container) {
-                display: none;
-            }
-            .label-preview-container {
-                width: 100%;
-                margin: 0;
-                box-shadow: none;
-                border: none;
-            }
-            .product-label {
-                border: 1px solid #000;
-            }
-        }
-
-        /* 手機版 */
-        @media (max-width: 600px) {
-            body {
-                flex-direction: column;
-                align-items: center;
-            }
-            .container,
-            .label-preview-container {
-                flex-basis: 100%;
-                width: 90%;
-                margin-bottom: 20px;
-            }
-            .product-label {
-                width: 100%;
-            }
-            .label-dates{
-                font-size: 0.9em;
-            }
-        }
-/* 條碼掃描器樣式 */
-#scanner-container {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.9);
-    display: none;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    z-index: 999;
-}
-
-/* 取消掃描按鈕容器 */
-.button-group {
-    position: absolute;
-    bottom: 30px;       /* 距離底部 30px */
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    justify-content: center;
-    width: auto;
-    z-index: 1000;
-}
-#scanner-container button {
-    padding: 10px 20px;
-    width: auto;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    color: #fff;
-    background-color: #007bff;
-    margin: 0;
-}
-
-/* 容器：置中顯示 */
-#interactive.viewport {
-    position: relative;
-    width: 100%;
-    height: 100vh; /* 全螢幕 */
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: black;
-}
-
-/* 攝影機畫面 */
-#interactive.viewport video {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    min-width: 100%;
-    min-height: 100%;
-    object-fit: cover;
-    clip-path: inset(25% 10% 25% 10%); 
-    /* ↑ 剛好比掃描框大一點：上下左右各 +5% */
-    z-index: 1;
-}
-
-/* Quagga 的繪圖 canvas */
-#interactive.viewport canvas.drawing {
-    display: none; /* 隱藏 Quagga 自動畫的框線（避免跟自製掃描框重疊） */
-}
-
-/* 掃描框 */
-.scanner-overlay {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 70%;   /* 框寬 */
-    height: 30%;  /* 框高 */
-    transform: translate(-50%, -50%);
-    border: 3px solid rgba(0, 255, 0, 0.9);
-    box-sizing: border-box;
-    pointer-events: none;
-    z-index: 2;
-}
-
-/* 中心水平線 */
-.scanner-line {
-    position: absolute;
-    top: 50%;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: rgba(255, 0, 0, 0.9);
-    transform: translateY(-50%);
-}
-
-.modal-overlay {
-	position: fixed; /* 固定在視口中 */
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	z-index: 1000; /* 確保在最上層 */
-	display: none; /* 預設隱藏 */
-}
-
-.modal-box {
-	background-color: #f5f5f5;
-	border: 2px solid #ed8500;
-	border-radius: 12px;
-	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-	width: 85%;
-	max-width: 550px;
-	overflow: hidden;
-	display: flex;
-	flex-direction: column;
-}
-
-.modal-header {
-	background-color: #ed8500;
-	color: white;
-	padding: 15px 20px;
-	display: flex;
-	justify-content: space-between;
-	align-items: center;
-	font-size: 24px; /* **字體加大** */
-	font-weight: bold;
-}
-
-.modal-header .close-icon {
-	font-size: 30px; /* 叉號圖示也加大 */
-	cursor: pointer;
-	margin-right: 8px;
-}
-
-.modal-header .title-text {
-	display: flex;
-	align-items: center;
-	gap: 12px;
-}
-.modal-header .title-text img {
-	height: 28px; /* 叉號圖示高度 */
-	width: auto;
-}
-
-.modal-content {
-	padding: 30px 25px;
-	font-size: 22px; /* **字體加大** */
-	color: #333;
-	text-align: center;
-	line-height: 1.6;
-	flex-grow: 1;
-	font-weight: bold; /* **加粗** */
-}
-
-.modal-content p {
-	margin-bottom: 12px;
-}
-
-.modal-button-container {
-	padding: 20px 25px;
-	border-top: 1px solid #ddd;
-	display: flex;
-	justify-content: center;
-}
-
-.modal-button {
-	background-color: #6daae2;
-	color: white;
-	padding: 15px 40px;
-	font-size: 24px; /* **按鈕字體加大** */
-	font-weight: bold;
-	border: none;
-	border-radius: 8px;
-	cursor: pointer;
-	transition: background-color 0.2s ease;
-}
-
-.modal-button:hover {
-	background-color: #5a91cf;
-}
-/*提示視窗*/
-.overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
-    display: none; /* 預設隱藏 */
-    justify-content: center;
-    align-items: center;
-    z-index: 1000; /* 確保在最上層 */
-}
-
-.popup {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    width: 300px;
-    text-align: center;
-    overflow: hidden;
-}
-
-.popup-header {
-    background: #007bff; /* 藍色背景 */
-    color: white;
-    padding: 15px;
-    font-size: 18px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-}
-
-.popup-icon {
-    font-size: 24px;
-    font-weight: bold;
-    line-height: 1;
-}
-
-.popup-content {
-    padding: 20px;
-    color: #333;
-    line-height: 1.5;
-}
-
-.popup-content p {
-    margin: 5px 0;
-}
-
-.popup-footer {
-    padding: 10px 20px 20px;
-    border-top: 1px solid #eee;
-}
-
-.popup-footer button {
-    background: #007bff; /* 藍色按鈕 */
-    color: white;
-    border: none;
-    padding: 10px 40px;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.popup-footer button:hover {
-    background-color: #0056b3;
-}
-    </style>
+<meta charset="UTF-8">
+<title>乞丐時光條碼搜尋器</title>
+<style>
+    .alert-box {
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(0,0,0,0.85);
+        color: #fff;
+        padding: 12px 20px;
+        border-radius: 6px;
+        z-index: 9999;
+        font-size: 16px;
+        line-height: 1.4em;
+    }
+    .alert-info {
+        background: rgba(0, 128, 0, 0.85);
+    }
+</style>
 </head>
 <body>
-<!--自訂錯誤訊息視窗-->
-<div class="modal-overlay" id="customAlertModal">
-        <div class="modal-box">
-            <div class="modal-header">
-                <div class="title-text">
-                    <span class="popup-icon">❌</span> <span>提示</span>
-                </div>
-            </div>
-            <div class="modal-content" id="modalContent">
-                </div>
-            <div class="modal-button-container">
-                <button class="modal-button" id="modalClearButton">清除</button>
-            </div>
-        </div>
-</div>
-<!--自訂提示訊息視窗-->
-<div id="popupOverlay" class="overlay">
-    <div class="popup">
-        <div class="popup-header">
-            <span class="popup-icon">✅</span>
-            成功
-        </div>
-        <div class="popup-content" id="info_alert_content">
-           
-        </div>
-        <div class="popup-footer">
-            <button id="closePopupButton">清除</button>
-        </div>
+    <div>
+        <label>品號：</label>
+        <input type="text" id="itemNumber" value="">
     </div>
-</div>
-<div class="container">
-  <h1>乞丐時光條碼搜尋器2.1</h1>
-
-  <div class="input-group">
-    <label for="productName">品名：</label>
-    <input type="text" id="productName" oninput="updateLabel()" placeholder="請輸入品名" value="*!!測試用*">
-  </div>
-
-  <div class="input-group">
-    <div class="inline-group">
-      <div class="field">
-        <label for="calories">熱量：</label>
-        <input type="number" id="calories" oninput="updateLabel()" placeholder="請輸入熱量 (大卡)" value="999">
-      </div>
-      <div class="field">
-        <label for="price">價格：</label>
-        <input type="number" id="price" oninput="updateLabel()" placeholder="請輸入價格 (元)" value="999">
-      </div>
+    <div>
+        <label>配別：</label>
+        <select id="batchCode">
+            <option value="1">1</option>
+            <option value="3">3</option>
+            <option value="6">6</option>
+        </select>
     </div>
-  </div>
-
-  <hr>
-
-  <div class="input-group" id="cameraSelectGroup" style="display:none;">
-    <label for="cameraSelect">選擇鏡頭：</label>
-    <select id="cameraSelect"></select>
-  </div>
-
-  <div class="input-group">
-    <button onclick="startScanner()">掃描條碼</button>
-  </div>
-
-  <div class="input-group">
-    <label for="itemNumber"><span style="color: red;">※</span>貨號（8碼）：</label>
-    <input type="text" id="itemNumber" maxlength="8" oninput="updateLabel()" placeholder="請輸入8碼貨號" value="26005652">
-  </div>
-
-  <div class="input-group">
-    <label for="batchCode"><span style="color: red;">※</span>配別（1碼）：</label>
-    <select id="batchCode" onchange="updateLabel()">
-      <option value="1">1 (24時)</option>
-      <option value="3">3 (3時)</option>
-      <option value="6">6 (17時)</option>
-    </select>
-  </div>
-
-  <div class="input-group">
-    <label for="productionDate">製造日期：</label>
-    <input type="date" id="productionDate" onchange="updateLabel()" value="2025-09-15">
-  </div>
-
-  <div class="input-group">
-    <label for="expiryDate"><span style="color: red;">※</span>有效日期：</label>
-    <input type="date" id="expiryDate" onchange="calculateExpiryDay(); updateLabel();" value="2025-09-16">
-  </div>
-</div>
-
-<div class="label-preview-container" id="label_preview">
-    <h1>標籤搜尋結果</h1>
-    <div class="product-label" id="productLabel">
-        <div class="label-header" id="headerLine">
-            <div class="product-name" id="labelProductName">**品名**</div>
-            <div class="info-boxes">
-                <div class="calories-box">
-                    <span>熱量</span>
-                    <span id="labelCalories">0</span>
-                    <span>大卡</span>
-                </div>
-                <div class="price-box" id="priceBox">0 元</div>
-            </div>
-        </div>
-        <div class="label-dates">
-            <span id="labelProductionDate">製造日期:</span>
-            <span id="labelExpiryDate">有效日期:</span>
-        </div>
-        <div class="label-barcode">
-            <svg id="barcode"></svg>
-            <div class="label-barcode-text" id="labelBarcodeText">
-            </div>
-            <div class="warning-text">
-                ⚠ 警告：
-                本條碼僅供測試使用，禁止用於結帳。
-                若以此條碼進行結帳，可能導致門市營運損失及庫存異常，並涉及不當使用之責任。
-                使用本條碼即代表同意並承擔上述責任。
-            </br>
-                © EDWARD <span id="copyright_today"> </span>
-            </div>
-        </div>
+    <div>
+        <label>生產日：</label>
+        <input type="date" id="productionDate">
     </div>
-</div>
+    <div>
+        <label>到期日：</label>
+        <input type="date" id="expiryDate">
+    </div>
+    <div>
+        <label>條碼：</label>
+        <span id="barcodeLabel">尚未生成</span>
+    </div>
 
-<div id="scanner-container">
-    <div id="interactive" class="viewport">
-        <!-- 自訂掃描框與中心線 -->
-        <div class="scanner-overlay">
-            <div class="scanner-line"></div>
-        </div>
-    </div>
-    <div class="button-group">
-        <button onclick="stopScanner()">取消掃描</button>
-    </div>
-</div>
 <script>
-    function calculateExpiryDay() {
-        const expiryDateInput = document.getElementById('expiryDate').value;
-        if (!expiryDateInput) return '';
+// 顯示錯誤提示
+function showCustomAlert(message) {
+    const alertBox = document.createElement("div");
+    alertBox.className = "alert-box";
+    alertBox.innerHTML = message;
+    document.body.appendChild(alertBox);
+    setTimeout(() => alertBox.remove(), 3000);
+}
 
-        const expiryDate = new Date(expiryDateInput);
-        const startOfYear = new Date(expiryDate.getFullYear(), 0, 0);
-        const diff = expiryDate - startOfYear;
-        const oneDay = 1000 * 60 * 60 * 24;
-        const dayOfYear = Math.floor(diff / oneDay);
-        
-        return String(dayOfYear).padStart(3, '0');
-    }
+// 顯示提示資訊
+function show_info_alert(message) {
+    const alertBox = document.createElement("div");
+    alertBox.className = "alert-box alert-info";
+    alertBox.innerHTML = message;
+    document.body.appendChild(alertBox);
+    setTimeout(() => alertBox.remove(), 3000);
+}
 
-    function calculateEAN13Checksum(code) {
-        if (code.length !== 12) return null;
-        
-        let sum = 0;
-        for (let i = 0; i < 12; i++) {
-            const digit = parseInt(code[i], 10);
-            if ((i + 1) % 2 !== 0) {
-                sum += digit;
-            } else {
-                sum += digit * 3;
-            }
-        }
-        
-        const remainder = sum % 10;
-        return remainder === 0 ? 0 : 10 - remainder;
-    }
+// 更新標籤（條碼顯示）
+function updateLabel() {
+    const itemNumber = document.getElementById('itemNumber').value || "00000000";
+    const productionDate = document.getElementById('productionDate').value || "0000-00-00";
+    const batchCode = document.getElementById('batchCode').value || "0";
+    const expiryDate = document.getElementById('expiryDate').value || "0000-00-00";
 
-    function updateLabel() {
-        const productName = document.getElementById('productName').value || '**品名**';
-        const calories = document.getElementById('calories').value || '0';
-        const price = document.getElementById('price').value || '0';
-        const itemNumber = document.getElementById('itemNumber').value;
-        const batchCode = document.getElementById('batchCode').value;
-        const productionDate = document.getElementById('productionDate').value;
-        const expiryDate = document.getElementById('expiryDate').value;
+    const barcodeText = `${itemNumber} ${productionDate} ${batchCode} ${expiryDate}`;
+    document.getElementById('barcodeLabel').innerText = barcodeText;
+}
 
-        // 更新標籤上的文字資訊
-        document.getElementById('labelProductName').textContent = productName;
-        document.getElementById('labelCalories').textContent = calories;
-        document.getElementById('priceBox').textContent = price + ' 元';
-        // 根據配別碼調整價格框和橫線顏色
-        const priceBox = document.getElementById('priceBox');
-        const headerLine = document.getElementById('headerLine');
-        let color = '#008000'; // 預設綠色
-        switch(batchCode) {
-            case '1':
-                color = '#000000'; // 黑色
-                break;
-            case '3':
-                color = '#FFA500'; // 橘色
-                break;
-            case '6':
-                color = '#008000'; // 綠色
-                break;
-        }
-        priceBox.style.borderColor = color;
-        priceBox.style.color = color;
-        headerLine.style.borderBottomColor = color;
-
-
-
-        // 格式化日期為 YYYY.MM.DD
-        const formattedProductionDate = productionDate ? productionDate.replace(/-/g, '.') : '';
-        const formattedExpiryDate = expiryDate ? expiryDate.replace(/-/g, '.') : '';
-        
-        let expiryTimeSuffix = '';
-        if (batchCode === '1') {
-            expiryTimeSuffix = ' 24時';
-        } else if (batchCode === '3') {
-            expiryTimeSuffix = ' 3時';
-        } else if (batchCode === '6') {
-            expiryTimeSuffix = ' 17時';
-        }
-
-        document.getElementById('labelProductionDate').textContent = `製造日期:${formattedProductionDate}`;
-        document.getElementById('labelExpiryDate').textContent = `有效日期: ${formattedExpiryDate}${expiryTimeSuffix}`;
-
-
-        // 檢查條碼必填欄位
-        if (itemNumber.length !== 8 || batchCode.length !== 1 || !expiryDate) {
-            JsBarcode("#barcode", "0", { displayValue: false, format: "EAN13" });
-            document.getElementById('labelBarcodeText').textContent = '請輸入完整資訊';
-            return;
-        }
-
-        const expiryDay = calculateExpiryDay();
-        const twelveDigits = itemNumber + expiryDay + batchCode;
-        const checkDigit = calculateEAN13Checksum(twelveDigits);
-        const fullBarcode = twelveDigits + checkDigit;
-        
-        // 生成條碼
-        try {
-            JsBarcode("#barcode", fullBarcode, {
-                format: "EAN13",
-                displayValue: false,
-                width: 5,
-                height: 60
-            });
-           // 將條碼數字分成兩部分並套用顏色
-            const firstEightDigits = fullBarcode.substring(0, 8);
-            const lastFiveDigits = fullBarcode.substring(8);
-/*
-            const ean_left = fullBarcode.substring(0,1);
-            const ean_middle = fullBarcode.substring(1,7);
-            const ean_right= fullBarcode.substring(7);
-            var ean_text = 
-            `
-            <div class="label-barcode-text">
-                <span class="ean-left barcode-red-text" >${ean_left}</span>
-                <span class="ean-middle barcode-red-text">${ean_middle}${ean_right.substring(0,1)}</span>
-                <span class="ean-right">${ean_right}</span>
-            </div>
-            `*/
-            document.getElementById('labelBarcodeText').innerHTML = `<span class="barcode-red-text">${firstEightDigits}</span>${lastFiveDigits}`;
-        } catch (error) {
-            document.getElementById('labelBarcodeText').textContent = '條碼產生錯誤';
-        }
-    }
-
- // --- 條碼掃描功能 ---
-    let scannerRunning = false;
-    const scannerContainer = document.getElementById('scanner-container');
-    const itemNumberInput = document.getElementById('itemNumber');
-    const cameraSelect = document.getElementById('cameraSelect');
-
-    function startScanner() {
-        document.body.style.overflow = 'hidden'; // 禁止頁面滑動
-        const selectedCamera = cameraSelect.value;
-        scannerContainer.style.display = 'flex';
-
-        const constraints = selectedCamera ? { deviceId: selectedCamera } : {};
-
-        Quagga.init({
-            inputStream : {
-                name : "Live",
-                type : "LiveStream",
-                target: document.querySelector('#interactive'),
-                constraints: constraints
-            },
-			
-            decoder: {
-               readers: ["ean_reader"],
-                multiple: false
-            },
-			frequency: 20,
-            // 使用裁切來設定掃描範圍
-            locate: true,
-            locator: {
-                patchSize: "medium",
-                halfSample: true
-            },
-            // 設定掃描框在畫面中的位置和大小
-            area: {
-                top: "30", 
-                right: "30%",
-                left: "30%",
-                bottom: "30%"
-            }
-        },  function(err) {
-            if (err) {
-                console.error(err);
-                alert("無法開啟鏡頭，請確認您的裝置權限。");
-                return;
-            }
-            console.log("Initialization finished. Ready to start.");
-            Quagga.start();
-            scannerRunning = true;
-        });
-        let lastResult = null;
-        let sameCount = 0;
-        Quagga.onDetected(function(result) {
-            const code = result.codeResult.code;
-            if (code === lastResult) {
-                sameCount++;
-              } else {
-                lastResult = code;
-                sameCount = 1;
-              }
-
-            if (sameCount >= 3 && code && code.length === 13) {
-                i_time_(code)
-                stopScanner();
-                updateLabel();
-            }
-        });
-    }
-
-    function stopScanner() {
-        if (scannerRunning) {
-            document.body.style.overflow = 'auto'; // 禁止頁面滑動
-            Quagga.stop();
-            scannerContainer.style.display = 'none';
-            scannerRunning = false;
-        }
-    }
-
-    // 取得所有可用鏡頭並填入選單
-    function populateCameraList() {
-        if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
-            navigator.mediaDevices.enumerateDevices()
-                .then(function(devices) {
-                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
-                    if (videoDevices.length > 0) {
-                        const cameraSelectGroup = document.getElementById('cameraSelectGroup');
-                        cameraSelectGroup.style.display = 'block'; // 顯示選單
-
-                        videoDevices.forEach(function(device) {
-                            const option = document.createElement('option');
-                            option.value = device.deviceId;
-                            option.text = device.label || `Camera ${cameraSelect.options.length + 1}`;
-                            cameraSelect.appendChild(option);
-                        });
-                    }
-                });
-        }
-    }
-    //自動匹配乞丐時段
+// 條碼解析 + 時段自動配對
 function i_time_(scanner_code) {
     const scannedItemNumber = scanner_code.substring(0, 8);
     const scannedbatchCode = scanner_code.substring(11, 12);
@@ -851,14 +87,14 @@ function i_time_(scanner_code) {
 
     if (!scanner_code.startsWith("2")) {
         showCustomAlert(`${scanner_code}無法辨識</br>請重新掃瞄並確認為時控條碼。`);
-        itemNumberInput.value = "00000000";
+        document.getElementById('itemNumber').value = "00000000";
         return false;
     } else if (!optionExists) {
         showCustomAlert(`${scanner_code}無法辨識配別</br>請自行選擇配別`);
     }
 
     document.getElementById('batchCode').value = scannedbatchCode;
-    itemNumberInput.value = scannedItemNumber;
+    document.getElementById('itemNumber').value = scannedItemNumber;
 
     const today = new Date();
     const currentHour = today.getHours();
@@ -894,92 +130,19 @@ function i_time_(scanner_code) {
                 document.getElementById('batchCode').value = '3';
                 document.getElementById('expiryDate').value = todayString;
                 show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${todayString} 10前有乞丐時光`);
+            } else {
+                showCustomAlert(`現在是${currentHour}點</br>不在乞丐時光時段，請手動確認。`);
             }
             break;
         }
     }
-        updateLabel()；
-｝
-        const targetDiv = document.getElementById('label_preview');
-        if (targetDiv) {
-            targetDiv.scrollIntoView({
-                behavior: 'smooth', // 選擇平滑滾動效果
-                block: 'start'      // 將元素的頂部對齊到視窗的頂部
-            });
-        }
-    }
-    // 頁面載入時先執行一次，並自動填入日期和鏡頭列表
-    document.addEventListener('DOMContentLoaded', () => {
-        const today = new Date();
-        const futureDate = new Date(today);
-        futureDate.setDate(today.getDate() + 1);
-        const todayString = today.toISOString().split('T')[0];
-        const futureDateString = futureDate.toISOString().split('T')[0];
-        document.getElementById('productionDate').value = todayString;
-        document.getElementById('expiryDate').value = futureDateString;
-        const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        const todayEnglish = today.toLocaleDateString('en-US', options);
-        document.getElementById('copyright_today').innerHTML = todayEnglish;
-        
-        updateLabel();
-        populateCameraList(); // 載入鏡頭列表
-        //i_time_('2600565225932')
-    });
 
-//錯誤
-// **** 模態視窗相關元素 ****
-const customAlertModal = document.getElementById('customAlertModal');
-const modalContent = document.getElementById('modalContent');
-const modalClearButton = document.getElementById('modalClearButton');
-
-// 顯示自定義模態視窗的函數
-function showCustomAlert(message) {
-	modalContent.innerHTML = message; // 將訊息內容放入模態視窗
-	customAlertModal.style.display = 'flex'; // 顯示模態視窗
-    document.body.style.overflow = 'hidden'; // 禁止頁面滑動
-}
-// 隱藏自定義模態視窗的函數
-function hideCustomAlert() {
-	customAlertModal.style.display = 'none'; // 隱藏模態視窗
-    document.body.style.overflow = 'auto'; 
+    updateLabel();
+    return true;
 }
 
-// 為模態視窗的「清除」按鈕添加事件監聽器
-modalClearButton.addEventListener('click', () => {
-	hideCustomAlert();
-});
-
-/*提示視窗*/
-// 取得提示視窗的元素
-const overlay = document.getElementById('popupOverlay');
-
-/**
- * 顯示提示視窗
- */
-function show_info_alert(info_alert_content) {
-    document.getElementById('info_alert_content').innerHTML = info_alert_content
-    overlay.style.display = 'flex';
-    document.body.style.overflow = 'hidden'; // 禁止頁面滑動
-}
-
-/**
- * 隱藏提示視窗
- */
-function hide_info_alert() {
-    document.getElementById('info_alert_content').innerHTML = ""
-    overlay.style.display = 'none';
-    document.body.style.overflow = 'auto'; 
-}
-
-// 監聽按鈕點擊事件
-document.addEventListener('DOMContentLoaded', () => {
-    // 點擊「清除」按鈕時，呼叫 hide_info_alert
-    const closeButton = document.getElementById('closePopupButton');
-    closeButton.addEventListener('click', hide_info_alert);
-});
+// 測試用：模擬掃碼
+// i_time_("212345672023-09-1832023-09-19");
 </script>
-
 </body>
 </html>
-
-
