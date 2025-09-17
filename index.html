@@ -806,21 +806,7 @@
               }
 
             if (sameCount >= 3 && code && code.length === 13) {
-                const scannedItemNumber = code.substring(0, 8);
-                const scannedBatchCode = code.substring(11, 12);
-                
-                // 將掃描到的條碼前8碼填入貨號輸入框
-                itemNumberInput.value = scannedItemNumber;
-                const batchCodeSelect = document.getElementById('batchCode');
-                const optionExists = Array.from(batchCodeSelect.options).some(option => option.value === scannedBatchCode);
-                 //判斷是否為鮮食條碼
-                if (optionExists && scanner_code.startsWith("2")) {
-                    batchCodeSelect.value = scannedBatchCode;
-                    i_time_(code)
-                } else {
-                    showCustomAlert(`${code}無法辨識</br>請重新掃瞄並確認為時控條碼。`);
-                }
-
+                i_time_(code)
                 stopScanner();
                 updateLabel();
             }
@@ -858,9 +844,25 @@
     }
     //自動匹配乞丐時段
     function i_time_(scanner_code){
-        var batchCode = scanner_code.at(-2)
-        document.getElementById('batchCode').value = batchCode;
-       // let now = new Date();
+        const scannedItemNumber = scanner_code.substring(0, 8);
+        const batchCode = scanner_code.substring(11, 12);
+        const batchCodeSelect = document.getElementById('batchCode');
+        const optionExists = Array.from(batchCodeSelect.options).some(option => option.value === batchCode);
+        batchCodeSelect.value = scannedBatchCode;
+                
+
+    if (！scanner_code.startsWith("2")) {
+            showCustomAlert(`${code}無法辨識</br>請重新掃瞄並確認為時控條碼。`);
+            itemNumberInput.value = 00000000;
+            return false；
+    }else if(!optionExists){
+            showCustomAlert(`${code}無法辨識配別</br>請自行選擇配別`);
+    }
+    document.getElementById('batchCode').value = batchCode;
+    //將掃描到的條碼前8碼填入貨號輸入框
+    itemNumberInput.value = scannedItemNumber;
+        
+    //  let now = new Date();
         //now.setHours(now.getHours() + 8);
        
         const today = new Date();
