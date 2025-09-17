@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>timecontrol_barcode</title>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.0/dist/JsBarcode.all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ericblade/quagga2/dist/quagga.min.js"></script>
+
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -192,28 +194,164 @@
                 font-size: 0.9em;
             }
         }
+        /* 條碼掃描器樣式 */
+        #scanner-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: none; /* 預設隱藏 */
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000;
+        }
+        #interactive.viewport {
+            position: relative;
+            width: 80%;
+            height: 80%;
+        }
+        canvas.drawing, video.drawing {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        .modal-overlay {
+	position: fixed; /* 固定在視口中 */
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5); /* 半透明黑色背景 */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 1000; /* 確保在最上層 */
+	display: none; /* 預設隱藏 */
+}
+
+.modal-box {
+	background-color: #f5f5f5;
+	border: 2px solid #ed8500;
+	border-radius: 12px;
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+	width: 85%;
+	max-width: 550px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.modal-header {
+	background-color: #ed8500;
+	color: white;
+	padding: 15px 20px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	font-size: 24px; /* **字體加大** */
+	font-weight: bold;
+}
+
+.modal-header .close-icon {
+	font-size: 30px; /* 叉號圖示也加大 */
+	cursor: pointer;
+	margin-right: 8px;
+}
+
+.modal-header .title-text {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.modal-header .title-text img {
+	height: 28px; /* 叉號圖示高度 */
+	width: auto;
+}
+
+.modal-content {
+	padding: 30px 25px;
+	font-size: 22px; /* **字體加大** */
+	color: #333;
+	text-align: center;
+	line-height: 1.6;
+	flex-grow: 1;
+	font-weight: bold; /* **加粗** */
+}
+
+.modal-content p {
+	margin-bottom: 12px;
+}
+
+.modal-button-container {
+	padding: 20px 25px;
+	border-top: 1px solid #ddd;
+	display: flex;
+	justify-content: center;
+}
+
+.modal-button {
+	background-color: #6daae2;
+	color: white;
+	padding: 15px 40px;
+	font-size: 24px; /* **按鈕字體加大** */
+	font-weight: bold;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+.modal-button:hover {
+	background-color: #5a91cf;
+}
     </style>
 </head>
 <body>
-
+<!--自訂錯誤訊息視窗-->
+<div class="modal-overlay" id="customAlertModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="title-text">
+                    <img src="https://images.freeimages.com/vhq/images/previews/7c4/red-round-error-warning-icon-49079.png" alt="X Icon" class="close-icon"> <span>作業提示</span>
+                </div>
+            </div>
+            <div class="modal-content" id="modalContent">
+                </div>
+            <div class="modal-button-container">
+                <button class="modal-button" id="modalClearButton">清除</button>
+            </div>
+        </div>
+</div>
 <div class="container">
     <h1>標籤資料輸入</h1>
     <div class="input-group">
         <label for="productName">品名：</label>
-        <input type="text" id="productName" oninput="updateLabel()" placeholder="請輸入品名" value="雙蔬鮪魚飯糰">
+        <input type="text" id="productName" oninput="updateLabel()" placeholder="請輸入品名" value="*!!測試用*">
     </div>
     <div class="input-group">
         <label for="calories">熱量：</label>
-        <input type="number" id="calories" oninput="updateLabel()" placeholder="請輸入熱量 (大卡)" value="250">
+        <input type="number" id="calories" oninput="updateLabel()" placeholder="請輸入熱量 (大卡)" value="999">
     </div>
     <div class="input-group">
         <label for="price">價格：</label>
-        <input type="number" id="price" oninput="updateLabel()" placeholder="請輸入價格 (元)" value="30">
+        <input type="number" id="price" oninput="updateLabel()" placeholder="請輸入價格 (元)" value="999">
     </div>
     <hr>
     <div class="input-group">
         <label for="itemNumber">貨號（8碼）：</label>
         <input type="text" id="itemNumber" maxlength="8" oninput="updateLabel()" placeholder="請輸入8碼貨號" value="26005652">
+    </div>
+    <div class="input-group" id="cameraSelectGroup" style="display:none;">
+        <label for="cameraSelect">選擇鏡頭：</label>
+        <select id="cameraSelect"></select>
+    </div>
+    <div class="input-group">
+        <button onclick="startScanner()">掃描條碼</button>
     </div>
     <div class="input-group">
         <label for="batchCode">配別（1碼）：</label>
@@ -230,8 +368,9 @@
     <div class="input-group">
         <label for="expiryDate">有效日期：</label>
         <input type="date" id="expiryDate" onchange="calculateExpiryDay(); updateLabel();" value="2025-09-16"> 
-    </div>    
-
+    </div>
+    
+   <!-- <button onclick="window.print()">列印標籤</button> -->
 </div>
 
 <div class="label-preview-container">
@@ -260,6 +399,10 @@
     </div>
 </div>
 
+<div id="scanner-container">
+    <button onclick="stopScanner()">取消掃描</button>
+    <div id="interactive" class="viewport"></div>
+</div>
 <script>
     function calculateExpiryDay() {
         const expiryDateInput = document.getElementById('expiryDate').value;
@@ -368,10 +511,172 @@
         }
     }
 
-    // 頁面載入時先執行一次，以顯示初始畫面
-    document.addEventListener('DOMContentLoaded', updateLabel);
+ // --- 條碼掃描功能 ---
+    let scannerRunning = false;
+    const scannerContainer = document.getElementById('scanner-container');
+    const itemNumberInput = document.getElementById('itemNumber');
+    const cameraSelect = document.getElementById('cameraSelect');
+
+    function startScanner() {
+        const selectedCamera = cameraSelect.value;
+        scannerContainer.style.display = 'flex';
+
+        const constraints = selectedCamera ? { deviceId: selectedCamera } : {};
+
+        Quagga.init({
+            inputStream : {
+                name : "Live",
+                type : "LiveStream",
+                target: document.querySelector('#interactive'),
+                constraints: constraints
+            },
+           decoder: {
+                // 僅設定偵測 EAN-13 格式
+                readers: ["ean_reader"]
+            }
+        }, function(err) {
+            if (err) {
+                console.error(err);
+                alert("無法開啟鏡頭，請確認您的裝置權限。");
+                return;
+            }
+            console.log("Initialization finished. Ready to start.");
+            Quagga.start();
+            scannerRunning = true;
+        });
+
+        Quagga.onDetected(function(result) {
+            const code = result.codeResult.code;
+            if (code && code.length === 13) {
+                const scannedItemNumber = code.substring(0, 8);
+                const scannedBatchCode = code.substring(11, 12);
+                
+                // 將掃描到的條碼前8碼填入貨號輸入框
+                itemNumberInput.value = scannedItemNumber;
+                const batchCodeSelect = document.getElementById('batchCode');
+                const optionExists = Array.from(batchCodeSelect.options).some(option => option.value === scannedBatchCode);
+                
+                if (optionExists) {
+                    batchCodeSelect.value = scannedBatchCode;
+                    i_time_(code)
+                } else {
+                    showCustomAlert(`${code}掃描到的配別碼 ${scannedBatchCode} 不在選單中。`);
+                }
+
+                stopScanner();
+                updateLabel();
+            }
+        });
+    }
+
+    function stopScanner() {
+        if (scannerRunning) {
+            Quagga.stop();
+            scannerContainer.style.display = 'none';
+            scannerRunning = false;
+        }
+    }
+
+    // 取得所有可用鏡頭並填入選單
+    function populateCameraList() {
+        if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
+            navigator.mediaDevices.enumerateDevices()
+                .then(function(devices) {
+                    const videoDevices = devices.filter(device => device.kind === 'videoinput');
+                    if (videoDevices.length > 0) {
+                        const cameraSelectGroup = document.getElementById('cameraSelectGroup');
+                        cameraSelectGroup.style.display = 'block'; // 顯示選單
+
+                        videoDevices.forEach(function(device) {
+                            const option = document.createElement('option');
+                            option.value = device.deviceId;
+                            option.text = device.label || `Camera ${cameraSelect.options.length + 1}`;
+                            cameraSelect.appendChild(option);
+                        });
+                    }
+                });
+        }
+    }
+    //自動匹配乞丐時段
+    function i_time_(scanner_code){
+        var batchCode = scanner_code.at(-2)
+        document.getElementById('batchCode').value = batchCode;
+
+        const today = new Date();
+        var currentHour = today.getHours();
+        const futureDate = new Date(today);
+        futureDate.setDate(today.getDate() + 1);
+        const todayString = today.toISOString().split('T')[0];
+        const futureDateString = futureDate.toISOString().split('T')[0];
+        switch (batchCode) {
+            case '1': {
+                document.getElementById('expiryDate').value = todayString;
+               if (currentHour >=19 && currentHour < 24) {
+                    
+                } else {
+                     showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段`)
+                }
+                break;
+            }
+            case '3': {
+                document.getElementById('expiryDate').value = futureDateString;
+                  //document.getElementById('batchCode').value = '3';
+                if (currentHour >=19 && currentHour < 3) {
+                   
+                } else {
+                     showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段`)
+                }
+                break;
+            }
+            case '6': {
+                document.getElementById('expiryDate').value = futureDateString;
+                //document.getElementById('batchCode').value = '6';
+                if (currentHour >=8 && currentHour < 17) {
+
+                } else {
+                    showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段`)
+                }
+                break;
+            }
+         }
+        updateLabel();
+        window.scrollTo(0, document.body.scrollHeight);
+    }
+    // 頁面載入時先執行一次，並自動填入日期和鏡頭列表
+    document.addEventListener('DOMContentLoaded', () => {
+        const today = new Date();
+        const futureDate = new Date(today);
+        futureDate.setDate(today.getDate() + 1);
+        const todayString = today.toISOString().split('T')[0];
+        const futureDateString = futureDate.toISOString().split('T')[0];
+        document.getElementById('productionDate').value = todayString;
+        document.getElementById('expiryDate').value = futureDateString;
+        updateLabel();
+        populateCameraList(); // 載入鏡頭列表
+        //i_time_('2600565225962')
+    });
+
+//錯誤
+// **** 模態視窗相關元素 ****
+const customAlertModal = document.getElementById('customAlertModal');
+const modalContent = document.getElementById('modalContent');
+const modalClearButton = document.getElementById('modalClearButton');
+
+// 顯示自定義模態視窗的函數
+function showCustomAlert(message) {
+	modalContent.innerHTML = message; // 將訊息內容放入模態視窗
+	customAlertModal.style.display = 'flex'; // 顯示模態視窗
+}
+// 隱藏自定義模態視窗的函數
+function hideCustomAlert() {
+	customAlertModal.style.display = 'none'; // 隱藏模態視窗
+}
+
+// 為模態視窗的「清除」按鈕添加事件監聽器
+modalClearButton.addEventListener('click', () => {
+	hideCustomAlert();
+});
 </script>
 
 </body>
 </html>
-
