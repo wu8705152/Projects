@@ -767,7 +767,8 @@
             },
 			
             decoder: {
-                readers: ["ean_reader"],
+               readers: ["ean_reader"],
+                multiple: false
             },
 			frequency: 20,
             // 使用裁切來設定掃描範圍
@@ -778,10 +779,10 @@
             },
             // 設定掃描框在畫面中的位置和大小
             area: {
-                top: "20%",
-                right: "10%",
-                left: "10%",
-                bottom: "50%"
+                top: "30", 
+                right: "30%",
+                left: "30%",
+                bottom: "30%"
             }
         },  function(err) {
             if (err) {
