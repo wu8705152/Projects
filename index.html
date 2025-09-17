@@ -152,6 +152,10 @@
             /* 強制文字不換行 */
             white-space: nowrap;
         }
+        /* 調整條碼前8碼的顏色 */
+        .barcode-red-text {
+            color: red;
+        }
         .warning-text {
             font-size: 0.8em;
             color: #888;
@@ -600,7 +604,10 @@ canvas.drawing, video.drawing {
                 width: 5,
                 height: 60
             });
-            document.getElementById('labelBarcodeText').textContent = fullBarcode;
+           // 修正：將條碼數字分成兩部分並套用顏色
+            const firstEightDigits = fullBarcode.substring(0, 8);
+            const lastFiveDigits = fullBarcode.substring(8);
+            document.getElementById('labelBarcodeText').innerHTML = `<span class="barcode-red-text">${firstEightDigits}</span>${lastFiveDigits}`;
         } catch (error) {
             document.getElementById('labelBarcodeText').textContent = '條碼產生錯誤';
         }
