@@ -849,8 +849,6 @@
         const batchCodeSelect = document.getElementById('batchCode');
         const optionExists = Array.from(batchCodeSelect.options).some(option => option.value === batchCode);
 
-                
-
     if (!scanner_code.startsWith("2")) {
             showCustomAlert(`${code}無法辨識</br>請重新掃瞄並確認為時控條碼。`);
             itemNumberInput.value = 00000000;
