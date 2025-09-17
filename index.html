@@ -843,70 +843,62 @@
         }
     }
     //自動匹配乞丐時段
-    function i_time_(scanner_code){
-        const scannedItemNumber = scanner_code.substring(0, 8);
-        var scannedbatchCode = scanner_code.substring(11, 12);
-        const batchCodeSelect = document.getElementById('batchCode');
-        const optionExists = Array.from(batchCodeSelect.options).some(option => option.value === batchCode);
+function i_time_(scanner_code) {
+    const scannedItemNumber = scanner_code.substring(0, 8);
+    const scannedbatchCode = scanner_code.substring(11, 12);
+    const batchCodeSelect = document.getElementById('batchCode');
+    const optionExists = Array.from(batchCodeSelect.options).some(option => option.value === scannedbatchCode);
 
-                
-
-    if (！scanner_code.startsWith("2")) {
-            showCustomAlert(`${code}無法辨識</br>請重新掃瞄並確認為時控條碼。`);
-            itemNumberInput.value = 00000000;
-            return false；
-    }else if(!optionExists){
-            showCustomAlert(`${code}無法辨識配別</br>請自行選擇配別`);
+    if (!scanner_code.startsWith("2")) {
+        showCustomAlert(`${scanner_code}無法辨識</br>請重新掃瞄並確認為時控條碼。`);
+        itemNumberInput.value = "00000000";
+        return false;
+    } else if (!optionExists) {
+        showCustomAlert(`${scanner_code}無法辨識配別</br>請自行選擇配別`);
     }
+
     document.getElementById('batchCode').value = scannedbatchCode;
-    //將掃描到的條碼前8碼填入貨號輸入框
     itemNumberInput.value = scannedItemNumber;
-        
-    //  let now = new Date();
-        //now.setHours(now.getHours() + 8);
-       
-        const today = new Date();
-        
-        var currentHour = today.getHours();
-        const futureDate = new Date(today);
-        futureDate.setDate(today.getDate() + 1);
-        const todayString = today.toISOString().split('T')[0];
-        const futureDateString = futureDate.toISOString().split('T')[0];
-        switch (batchCode) {
-            case '1': {
+
+    const today = new Date();
+    const currentHour = today.getHours();
+    const futureDate = new Date(today);
+    futureDate.setDate(today.getDate() + 1);
+    const todayString = today.toISOString().split('T')[0];
+    const futureDateString = futureDate.toISOString().split('T')[0];
+
+    switch (scannedbatchCode) {
+        case '1': { // 晚上 19~24
+            document.getElementById('expiryDate').value = todayString;
+            if (currentHour >= 19 && currentHour < 24) {
+                show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${todayString} 24前有乞丐時光`);
+            } else {
+                showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段19-24 </br> 自動匹配最近時段19點後即有折扣`);
+            }
+            break;
+        }
+        case '3':
+        case '6': {
+            if (currentHour >= 10 && currentHour < 17) { 
+                // 白天 10~17 點 -> 批號 6
+                document.getElementById('batchCode').value = '6';
                 document.getElementById('expiryDate').value = todayString;
-               if (currentHour >=19 && currentHour < 24) {
-                    show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${todayString} 24前有乞丐時光`)
-                } else {
-                    showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段19-24 </br> 自動匹配最近時段19點後即有折扣`)
-                }
-                break;
+                show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${todayString} 17前有乞丐時光`);
+            } else if (currentHour >= 19 || currentHour < 3) {
+                // 晚上 19~隔天 03 點 -> 批號 3
+                document.getElementById('batchCode').value = '3';
+                document.getElementById('expiryDate').value = futureDateString;
+                show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${futureDateString} 03前有乞丐時光`);
+            } else if (currentHour >= 3 && currentHour < 10) {
+                // 凌晨 03~10 點 -> 批號 3（當天到期）
+                document.getElementById('batchCode').value = '3';
+                document.getElementById('expiryDate').value = todayString;
+                show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${todayString} 10前有乞丐時光`);
             }
-            case '3':
-            case '6': {
-                  //document.getElementById('batchCode').value = '3';
-                if (currentHour >= 10 && currentHour < 17) { //自動匹配最近時段配別 17點
-                    document.getElementById('batchCode').value = 6;
-                    document.getElementById('expiryDate').value = todayString;
-                    show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${todayString} 17前有乞丐時光`)
-                }else if (currentHour >=19 || currentHour < 3) { //自動匹配最近時段配別  3點
-                    document.getElementById('batchCode').value = 3;
-                    document.getElementById('expiryDate').value = futureDateString;
-                    show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${futureDateString} 03前有乞丐時光`)
-                }else if(currentHour >= 3 && currentHour < 10){
-                        document.getElementById('batchCode').value = 6;
-                        document.getElementById('expiryDate').value = todayString;      
-                        showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段10-17 </br> 自動匹配最近時段今日10點後即有折扣`)
-                }else if(currentHour >= 17 && currentHour < 19){
-                        document.getElementById('batchCode').value = 3;
-                        document.getElementById('expiryDate').value = futureDateString;      
-                        showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段19-03 </br> 自動匹配最近時段今日19點後即有折扣`)
-                }
-                break;
-            }
-            default:
-                console.log("沒有匹配到任何值");
-         }
+            break;
+        }
+    }
+}
         updateLabel();
         const targetDiv = document.getElementById('label_preview');
         if (targetDiv) {
