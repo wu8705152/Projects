@@ -629,9 +629,9 @@
                 break;
             }
             case '6': {
-                document.getElementById('expiryDate').value = futureDateString;
+                document.getElementById('expiryDate').value = todayString;
                 //document.getElementById('batchCode').value = '6';
-                if (currentHour >=8 && currentHour < 17) {
+                if (currentHour >=10 && currentHour < 17) {
 
                 } else {
                     showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段10-17`)
