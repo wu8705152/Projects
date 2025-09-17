@@ -797,6 +797,7 @@
         let lastResult = null;
         let sameCount = 0;
         Quagga.onDetected(function(result) {
+            alert("777")
             const code = result.codeResult.code;
             if(code === lastResult) {
                 sameCount++;
