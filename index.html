@@ -521,7 +521,7 @@
     </div>
 </div>
 <div class="container">
-  <h1>乞丐時光條碼搜尋器</h1>
+  <h1>乞丐時光條碼搜尋器2.0</h1>
 
   <div class="input-group">
     <label for="productName">品名：</label>
@@ -797,7 +797,16 @@
 
         Quagga.onDetected(function(result) {
             const code = result.codeResult.code;
-            if (code && code.length === 13) {
+            let lastResult = null;
+            let sameCount = 0;
+            if (code === lastResult) {
+                sameCount++;
+              } else {
+                lastResult = code;
+                sameCount = 1;
+              }
+
+            if (sameCount >= 3 && code && code.length === 13) {
                 const scannedItemNumber = code.substring(0, 8);
                 const scannedBatchCode = code.substring(11, 12);
                 
