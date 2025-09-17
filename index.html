@@ -199,7 +199,7 @@
             }
         }
 /* 條碼掃描器樣式 */
- #scanner-container {
+#scanner-container {
     position: fixed;
     top: 0;
     left: 0;
@@ -212,25 +212,16 @@
     flex-direction: column;
     z-index: 999;
 }
-#interactive.viewport {
-    position: relative;
-    /* 調整寬度為100%以填滿父容器 */
-    width: 100%;
-    /* 調整高度以顯示完整的掃描畫面 */
-    height: 80vh;
-}
-canvas.drawing, video.drawing {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-}
+
+/* 取消掃描按鈕容器 */
 .button-group {
+    position: absolute;
+    bottom: 30px;       /* 距離底部 30px */
+    left: 50%;
+    transform: translateX(-50%);
     display: flex;
-    justify-content: space-between;
-    width: 320px;
-    margin-top: 20px;
+    justify-content: center;
+    width: auto;
     z-index: 1000;
 }
 #scanner-container button {
@@ -243,11 +234,61 @@ canvas.drawing, video.drawing {
     background-color: #007bff;
     margin: 0;
 }
-#scanner-container button#switchCameraBtn {
-    background-color: #28a745;
+
+/* 容器：置中顯示 */
+#interactive.viewport {
+    position: relative;
+    width: 100%;
+    height: 100vh; /* 全螢幕 */
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: black;
 }
-#scanner-container button:hover {
-    opacity: 0.9;
+
+/* 攝影機畫面 */
+#interactive.viewport video {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 100%;
+    min-height: 100%;
+    object-fit: cover;
+    clip-path: inset(25% 10% 25% 10%); 
+    /* ↑ 剛好比掃描框大一點：上下左右各 +5% */
+    z-index: 1;
+}
+
+/* Quagga 的繪圖 canvas */
+#interactive.viewport canvas.drawing {
+    display: none; /* 隱藏 Quagga 自動畫的框線（避免跟自製掃描框重疊） */
+}
+
+/* 掃描框 */
+.scanner-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 70%;   /* 框寬 */
+    height: 30%;  /* 框高 */
+    transform: translate(-50%, -50%);
+    border: 3px solid rgba(0, 255, 0, 0.9);
+    box-sizing: border-box;
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* 中心水平線 */
+.scanner-line {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(255, 0, 0, 0.9);
+    transform: translateY(-50%);
 }
 
 .modal-overlay {
@@ -523,7 +564,12 @@ canvas.drawing, video.drawing {
 </div>
 
 <div id="scanner-container">
-    <div id="interactive" class="viewport"></div>
+    <div id="interactive" class="viewport">
+        <!-- 自訂掃描框與中心線 -->
+        <div class="scanner-overlay">
+            <div class="scanner-line"></div>
+        </div>
+    </div>
     <div class="button-group">
         <button onclick="stopScanner()">取消掃描</button>
     </div>
@@ -757,7 +803,7 @@ canvas.drawing, video.drawing {
             case '1': {
                 document.getElementById('expiryDate').value = todayString;
                if (currentHour >=19 && currentHour < 24) {
-                    
+                    show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${todayString} 24前有乞丐時光`)
                 } else {
                     showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段19-24 </br> 自動匹配最近時段19點後即有折扣`)
                 }
@@ -870,5 +916,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-
