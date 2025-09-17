@@ -727,7 +727,7 @@
            // 將條碼數字分成兩部分並套用顏色
             const firstEightDigits = fullBarcode.substring(0, 8);
             const lastFiveDigits = fullBarcode.substring(8);
-
+/*
             const ean_left = fullBarcode.substring(0,1);
             const ean_middle = fullBarcode.substring(1,7);
             const ean_right= fullBarcode.substring(7);
@@ -738,8 +738,8 @@
                 <span class="ean-middle barcode-red-text">${ean_middle}${ean_right.substring(0,1)}</span>
                 <span class="ean-right">${ean_right}</span>
             </div>
-            `
-            document.getElementById('labelBarcodeText').innerHTML = `${ean_text}`;
+            `*/
+            document.getElementById('labelBarcodeText').innerHTML = `<span class="barcode-red-text">${firstEightDigits}</span>${lastFiveDigits}`;
         } catch (error) {
             document.getElementById('labelBarcodeText').textContent = '條碼產生錯誤';
         }
@@ -976,5 +976,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
 
