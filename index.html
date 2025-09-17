@@ -479,7 +479,14 @@
         <div class="label-barcode">
             <svg id="barcode"></svg>
             <div class="label-barcode-text" id="labelBarcodeText"></div>
-            <div class="warning-text">警告：本條碼僅供測試使用，禁止用於結帳。若以此條碼進行結帳，可能導致門市營運損失及庫存異常，並涉及不當使用之責任。使用本條碼即代表同意並承擔上述責任。</div>
+            <div class="warning-text">
+                ⚠ 警告：
+                本條碼僅供測試使用，禁止用於結帳。
+                若以此條碼進行結帳，可能導致門市營運損失及庫存異常，並涉及不當使用之責任。
+                使用本條碼即代表同意並承擔上述責任。
+            </br>
+                © EDWARD <span id="copyright_today"> </span>
+            </div>
         </div>
     </div>
 </div>
@@ -743,6 +750,10 @@
         const futureDateString = futureDate.toISOString().split('T')[0];
         document.getElementById('productionDate').value = todayString;
         document.getElementById('expiryDate').value = futureDateString;
+        const options = { year: 'numeric', month: 'short', day: 'numeric' };
+        const todayEnglish = today.toLocaleDateString('en-US', options);
+        document.getElementById('copyright_today').innerHTML = todayEnglish;
+        
         updateLabel();
         populateCameraList(); // 載入鏡頭列表
         //i_time_('2600565225932')
