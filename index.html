@@ -910,6 +910,7 @@ function i_time_(scanner_code){
     switch (scannedBatchCode) {
         case '1': {
             document.getElementById('expiryDate').value = todayString;
+            document.getElementById('batchCode').value = 1;
             if (currentHour >=19 && currentHour < 24) {
                 show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${todayString} 24前有乞丐時光`)
             } else {
@@ -929,13 +930,13 @@ function i_time_(scanner_code){
                 document.getElementById('expiryDate').value = futureDateString;
                 show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${futureDateString} 03前有乞丐時光`)
             }else if(currentHour >= 3 && currentHour < 10){
-                    document.getElementById('batchCode').value = 6;
-                    document.getElementById('expiryDate').value = todayString;      
-                    showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段10-17 </br> 自動匹配最近時段</br>今日10點後即有折扣`)
+                document.getElementById('batchCode').value = 6;
+                document.getElementById('expiryDate').value = todayString;      
+                showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段10-17 </br> 自動匹配最近時段</br>今日10點後即有折扣`)
             }else if(currentHour >= 17 && currentHour < 19){
-                    document.getElementById('batchCode').value = 3;
-                    document.getElementById('expiryDate').value = futureDateString;      
-                    showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段19-03 </br> 自動匹配最近時段</br>今日19點後即有折扣`)
+                document.getElementById('batchCode').value = 3;
+                document.getElementById('expiryDate').value = futureDateString;      
+                showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段19-03 </br> 自動匹配最近時段</br>今日19點後即有折扣`)
             }
             break;
         }
@@ -1025,42 +1026,66 @@ document.addEventListener('DOMContentLoaded', () => {
 // 設定要視為「綠色時段」的區間
 // 19-03 -> 小時 >=19 或 小時 <=3 (跨午夜)
 
-function isGreenHour(h) {
-if (h >= 10 && h <= 17) return true;
-if (h >= 19 || h <= 3) return true;
-return false;
-}
-
-
 function two(n) {
 return n.toString().padStart(2, '0');
 }
+function isGreenHour(h) {
+    const batchCode_value = document.getElementById('batchCode').value;
+    // 配別對應時間表
+    const timeTags = {
+        "1": "24",
+        "3": "3",
+        "6": "17"
+    };
+    const i_time_tag = timeTags[batchCode_value];
+    // 將 i_time_tag 轉換為數字
+    const tag = parseInt(i_time_tag, 10);
+
+    if (tag === 24) {
+        // 時段在 19:00 - 24:00 (或 00:00)
+        return h >= 19 || h < 0; // 0點代表午夜24點
+    } else if (tag === 17) {
+        // 時段在 10:00 - 17:00
+        return h >= 10 && h < 17;
+    } else if (tag === 3) {
+        // 時段在 19:00 - 03:00 (跨午夜)
+        return h >= 19 || h < 3;
+    }
+    
+    // 如果 i_time_tag 不在預期範圍內，回傳 false
+    return false;
+}
+
+
 
 
 function updateClock() {
-const now = new Date();
-const hh = now.getHours();
-const mm = now.getMinutes();
-const ss = now.getSeconds();
+    
+
+    const now = new Date();
+    now.setHours(now.getHours() + 15);
+    const hh = now.getHours();
+    const mm = now.getMinutes();
+    const ss = now.getSeconds();
 
 
-document.getElementById('time').textContent = `${two(hh)}:${two(mm)}:${two(ss)}`;
-document.getElementById('date').textContent = now.toLocaleDateString();
+    document.getElementById('time').textContent = `${two(hh)}:${two(mm)}:${two(ss)}`;
+    document.getElementById('date').textContent = now.toLocaleDateString();
 
 
-const badge = document.getElementById('badge');
-const timeEl = document.getElementById('time');
+    const badge = document.getElementById('badge');
+    const timeEl = document.getElementById('time');
 
 
-if (isGreenHour(hh)) {
-   // timeEl.classList.add('green');
-    badge.textContent = '乞丐時段';
-    badge.classList.add('green');
-} else {
-   // timeEl.classList.remove('green');
-    badge.textContent = '非乞丐時段';
-    badge.classList.remove('green');
-}
+    if (isGreenHour(hh)) {
+    // timeEl.classList.add('green');
+        badge.textContent = '乞丐時段';
+        badge.classList.add('green');
+    } else {
+    // timeEl.classList.remove('green');
+        badge.textContent = '非乞丐時段';
+        badge.classList.remove('green');
+    }
 }
 
 
