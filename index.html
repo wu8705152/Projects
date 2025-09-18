@@ -932,7 +932,7 @@ function i_time_(scanner_code){
                 document.getElementById('batchCode').value = 3;
                 document.getElementById('expiryDate').value = futureDateString;
                 show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${futureDateString} 03前有乞丐時光`)
-            }else if(currentHour >= 3 && currentHour < 10){
+            }else if(currentHour >= 3 && currentHour < 10  && !non_second_import.includes(productCategory)){
                 document.getElementById('batchCode').value = 6;
                 document.getElementById('expiryDate').value = todayString;      
                 showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段10-17 </br> 自動匹配最近時段</br>今日10點後即有折扣`)
