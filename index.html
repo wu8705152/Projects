@@ -877,8 +877,8 @@
     //自動匹配乞丐時段
 function i_time_(scanner_code){
     const scannedItemNumber = scanner_code.substring(0, 8);
-    const scannedBatchCode = scanner_code.substring(11, 12);
-
+    let scannedBatchCode = scanner_code.substring(11, 12);
+    let productCategory = scanner_code.substring(0, 2);;
     // 將掃描到的條碼前8碼填入貨號輸入框
     itemNumberInput.value = scannedItemNumber;
     const batchCodeSelect = document.getElementById('batchCode');
@@ -892,10 +892,13 @@ function i_time_(scanner_code){
         showCustomAlert(`${scanner_code}無法辨識配別</br>請自行選擇配別。`);
         document.getElementById('batchCode').value = 1;
     }
-    //document.getElementById('batchCode').value = scannedbatchCode;
+    //無二配 
+    let non_second_import = ["25"];
+    console.log(non_second_import.includes(productCategory))
+        //document.getElementById('batchCode').value = scannedbatchCode;
     //將掃描到的條碼前8碼填入貨號輸入框
    // itemNumberInput.value = scannedItemNumber;
-
+       
 
     // let now = new Date();
     //now.setHours(now.getHours() + 8);
@@ -921,7 +924,7 @@ function i_time_(scanner_code){
         case '3':
         case '6': {
                 //document.getElementById('batchCode').value = '3';
-            if (currentHour >= 10 && currentHour < 17) { //自動匹配最近時段配別 17點
+            if (currentHour >= 10 && currentHour < 17 && !non_second_import.includes(productCategory)) { //自動匹配最近時段配別 17點 排除特定類別
                 document.getElementById('batchCode').value = 6;
                 document.getElementById('expiryDate').value = todayString;
                 show_info_alert(`現在是${currentHour}點</br>自動匹配最近時段配別</br>${todayString} 17前有乞丐時光`)
@@ -933,7 +936,7 @@ function i_time_(scanner_code){
                 document.getElementById('batchCode').value = 6;
                 document.getElementById('expiryDate').value = todayString;      
                 showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段10-17 </br> 自動匹配最近時段</br>今日10點後即有折扣`)
-            }else if(currentHour >= 17 && currentHour < 19){
+            }else if(currentHour >= 17 && currentHour < 19 || non_second_import.includes(productCategory)){
                 document.getElementById('batchCode').value = 3;
                 document.getElementById('expiryDate').value = futureDateString;      
                 showCustomAlert(`現在是${currentHour}點</br>非乞丐時光時段19-03 </br> 自動匹配最近時段</br>今日19點後即有折扣`)
@@ -967,7 +970,7 @@ function i_time_(scanner_code){
         
         updateLabel();
         populateCameraList(); // 載入鏡頭列表
-       // i_time_('4604565225992')
+       //i_time_('2504565225962')
     });
 
 //錯誤
