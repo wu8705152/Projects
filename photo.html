@@ -110,6 +110,7 @@
 
         .output-section {
             margin-top: 20px;
+            display: none;
         }
 
         #finalImage {
@@ -172,8 +173,8 @@
             <button id="combineBtn">合併並生成照片</button>
         </div>
 
-        <div class="output-section">
-            <h2>最終照片預覽</h2>
+        <div class="output-section" id="output-section">
+            <h2>最終照片預覽(長按or右鍵儲存相片)</h2>
             <canvas id="photoCanvas" width="2000" height="1200"></canvas>
             <img id="finalImage" alt="最終照片">
         </div>
@@ -223,7 +224,7 @@
                 <label>照片 ${index + 1}:</label>
                 <input type="file" class="photo-input" accept="image/*" capture="camera">
                 <span class="photo-alert hidden">請上傳照片！</span>
-                <label>文字 ${index + 1}:</label>
+                <label>文字 ${index + 1}(可下拉選擇):</label>
                 <input list="textSuggestions" type="text" class="text-input" placeholder="請輸入或選擇文字">
             `;
             photoInputsContainer.appendChild(div);
@@ -355,6 +356,7 @@
                 return;
             }
             
+            document.getElementById("output-section").style.display = "block"
             const selectedPhotos = photoData.filter(p => p.image);
 
             ctx.fillStyle = '#FFFFFF';
@@ -400,9 +402,9 @@
                 
                 ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
                 
-                const text = data.text || `照片 ${i + 1}`;
+                const text = data.text || ``;
                 ctx.fillStyle = '#FFFFFF';
-                ctx.font = 'bold 70px Arial';
+                ctx.font = 'bold 50px Arial';
                 ctx.textAlign = 'center';
                 
                 ctx.shadowColor = 'black';
