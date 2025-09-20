@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>排面照片編輯器@2</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 900px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            color: #0056b3;
+        }
+
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        #photoInputsContainer {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .photo-uploader {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .photo-uploader .delete-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            line-height: 1;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .photo-uploader .delete-btn:hover {
+            background-color: #c82333;
+        }
+
+        input[type="text"], input[type="file"], select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        button {
+            padding: 12px 24px;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        #addPhotoBtn { background-color: #28a745; }
+        #addPhotoBtn:hover { background-color: #218838; }
+        #combineBtn { background-color: #007bff; }
+        #combineBtn:hover { background-color: #0056b3; }
+
+        .output-section {
+            margin-top: 20px;
+        }
+
+        #photoCanvas {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid #ccc;
+            display: block;
+            margin: 20px auto 0;
+        }
+        
+        #downloadLink {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+
+        #downloadLink:hover {
+            background-color: #218838;
+        }
+
+        /* 響應式設計：小於 600px 寬度的螢幕 */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px 15px;
+            }
+            .photo-uploader {
+                width: 100%;
+            }
+            .action-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>彈性照片編輯器</h1>
+
+        <div class="controls">
+            <label for="uploaderName">拍攝者姓名:</label>
+            <input type="text" id="uploaderName" placeholder="請輸入您的姓名">
+        </div>
+
+        <div id="photoInputsContainer">
+            </div>
+
+        <div class="action-buttons">
+            <button id="addPhotoBtn">新增照片</button>
+            <button id="combineBtn">合併並生成照片</button>
+        </div>
+
+        <div class="output-section">
+            <h2>最終照片預覽</h2>
+            <canvas id="photoCanvas" width="1600" height="1200"></canvas>
+            <a id="downloadLink" download="我的合成照片.jpg" style="display: none;">下載照片</a>
+        </div>
+    </div>
+
+    <script>
+        const uploaderNameInput = document.getElementById('uploaderName');
+        const photoInputsContainer = document.getElementById('photoInputsContainer');
+        const addPhotoBtn = document.getElementById('addPhotoBtn');
+        const combineBtn = document.getElementById('combineBtn');
+        const canvas = document.getElementById('photoCanvas');
+        const ctx = canvas.getContext('2d');
+        const downloadLink = document.getElementById('downloadLink');
+
+        const MAX_PHOTOS = 8;
+        let photoData = []; 
+        
+        const defaultTexts = [
+            "自訂輸入",
+            "麵包",
+            "冷凍",
+            "泡麵",
+            "零食",
+            "騎樓一",
+            "騎樓二",
+        ];
+
+        // 創建一個新的照片輸入區塊
+        function createPhotoInputBlock(index) {
+            const div = document.createElement('div');
+            div.className = 'photo-uploader';
+            div.setAttribute('data-index', index);
+            div.innerHTML = `
+                <button class="delete-btn" title="刪除">&times;</button>
+                <label>照片 ${index + 1}:</label>
+                <input type="file" class="photo-input" accept="image/*" capture="camera">
+                <label>文字 ${index + 1}:</label>
+                <select class="text-select">
+                    ${defaultTexts.map(text => `<option value="${text}">${text}</option>`).join('')}
+                </select>
+                <input type="text" class="text-input" placeholder="或自行輸入">
+            `;
+            photoInputsContainer.appendChild(div);
+        }
+
+        // 初始載入第一個照片輸入區塊
+        createPhotoInputBlock(0);
+        photoData.push({});
+
+        // 新增照片按鈕事件
+        addPhotoBtn.addEventListener('click', () => {
+            if (photoData.length < MAX_PHOTOS) {
+                const newIndex = photoData.length;
+                createPhotoInputBlock(newIndex);
+                photoData.push({});
+            } else {
+                alert('最多只能新增 8 張照片！');
+            }
+        });
+
+        // 監聽照片輸入框與文字選擇框的改變事件 (事件代理)
+        photoInputsContainer.addEventListener('change', async (e) => {
+            if (e.target.classList.contains('photo-input')) {
+                const block = e.target.closest('.photo-uploader');
+                const index = parseInt(block.dataset.index);
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            photoData[index].image = img;
+                        };
+                        img.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } else if (e.target.classList.contains('text-select')) {
+                const block = e.target.closest('.photo-uploader');
+                const textInput = block.querySelector('.text-input');
+                const selectedValue = e.target.value;
+                if (selectedValue !== "自訂輸入") {
+                    textInput.value = selectedValue;
+                } else {
+                    textInput.value = "";
+                    textInput.focus();
+                }
+            }
+        });
+
+        // 監聽刪除按鈕點擊事件 (事件代理)
+        photoInputsContainer.addEventListener('click', (e) => {
+            if (e.target.classList.contains('delete-btn')) {
+                const block = e.target.closest('.photo-uploader');
+                const index = parseInt(block.dataset.index);
+                
+                block.remove();
+
+                photoData.splice(index, 1);
+
+                document.querySelectorAll('.photo-uploader').forEach((el, i) => {
+                    el.dataset.index = i;
+                    el.querySelector('label:nth-of-type(1)').textContent = `照片 ${i + 1}:`;
+                    el.querySelector('label:nth-of-type(2)').textContent = `文字 ${i + 1}:`;
+                });
+            }
+        });
+
+        // 合併照片的邏輯
+        combineBtn.addEventListener('click', async () => {
+            document.querySelectorAll('.photo-uploader').forEach((block, i) => {
+                const textInput = block.querySelector('.text-input');
+                if (photoData[i]) {
+                    photoData[i].text = textInput.value;
+                }
+            });
+
+            const selectedPhotos = photoData.filter(p => p.image);
+            if (selectedPhotos.length === 0) {
+                alert('請至少選擇一張照片！');
+                return;
+            }
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const numPhotos = selectedPhotos.length;
+            let rows, cols;
+
+            if (numPhotos <= 4) {
+                rows = 1;
+                cols = numPhotos;
+            } else {
+                rows = 2;
+                cols = Math.ceil(numPhotos / 2);
+            }
+
+            const cellWidth = canvas.width / cols;
+            const cellHeight = canvas.height / rows;
+
+            selectedPhotos.forEach((data, i) => {
+                const row = Math.floor(i / cols);
+                const col = i % cols;
+                const x = col * cellWidth;
+                const y = row * cellHeight;
+                
+                const image = data.image;
+                const imageRatio = image.width / image.height;
+                const cellRatio = cellWidth / cellHeight;
+                
+                let drawX, drawY, drawWidth, drawHeight;
+
+                if (imageRatio > cellRatio) {
+                    drawHeight = cellHeight;
+                    drawWidth = cellHeight * imageRatio;
+                    drawX = x - (drawWidth - cellWidth) / 2;
+                    drawY = y;
+                } else {
+                    drawWidth = cellWidth;
+                    drawHeight = cellWidth / imageRatio;
+                    drawX = x;
+                    drawY = y - (drawHeight - cellHeight) / 2;
+                }
+                
+                ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+                
+                const text = data.text || `照片 ${i + 1}`;
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = 'bold 70px Arial';
+                ctx.textAlign = 'center';
+                
+                ctx.shadowColor = 'black';
+                ctx.shadowOffsetX = 3;
+                ctx.shadowOffsetY = 3;
+                ctx.shadowBlur = 5;
+
+                ctx.fillText(text, x + cellWidth / 2, y + 80);
+                
+                ctx.shadowColor = 'transparent';
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 0;
+                ctx.shadowBlur = 0;
+            });
+            
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
+            const day = now.getDate().toString().padStart(2, '0');
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+            
+            const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+            const fileNameString = `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+            const uploaderName = uploaderNameInput.value || '匿名拍攝者';
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 35px Arial';
+            ctx.textAlign = 'right';
+
+            ctx.shadowColor = 'black';
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.shadowBlur = 4;
+            
+            ctx.fillText(dateTimeString, canvas.width - 20, canvas.height - 60);
+            ctx.fillText(`拍攝者: ${uploaderName}`, canvas.width - 20, canvas.height - 20);
+            
+            downloadLink.style.display = 'block';
+            downloadLink.href = canvas.toDataURL('image/jpeg');
+            downloadLink.download = `${fileNameString}.jpg`;
+        });
+    </script>
+</body>
+</html>
