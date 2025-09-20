@@ -192,12 +192,12 @@
         let photoData = []; 
         
         const defaultTexts = [
+            "櫃台一",
+            "櫃台二",
             "麵包",
-            "冷凍",
-            "泡麵",
             "零食",
-            "騎樓一",
-            "騎樓二",
+            "落地",
+            "騎樓",
         ];
 
         
@@ -206,17 +206,22 @@
             const div = document.createElement('div');
             div.className = 'photo-uploader';
             div.setAttribute('data-index', index);
+            
+            let deleteButtonHtml = '';
+            if (index > 0) {
+                deleteButtonHtml = '<button class="delete-btn" title="刪除">&times;</button>';
+            }
+
             div.innerHTML = `
-                <button class="delete-btn" title="刪除">&times;</button>
+                ${deleteButtonHtml}
                 <label>照片 ${index + 1}:</label>
                 <input type="file" class="photo-input" accept="image/*" capture="camera">
                 <span class="photo-alert hidden">請上傳照片！</span>
-                <label>文字(可下拉選擇) ${index + 1}:</label>
+                <label>文字 ${index + 1}:</label>
                 <input list="textSuggestions" type="text" class="text-input" placeholder="請輸入或選擇文字">
             `;
             photoInputsContainer.appendChild(div);
         }
-
         // 新增 `datalist` 到 HTML 中
         function createDatalist() {
             const datalist = document.createElement('datalist');
