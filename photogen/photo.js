@@ -62,8 +62,14 @@ function createPhotoInputBlock(index) {
 
     const previewContainer = document.createElement('div');
     previewContainer.className = 'photo-preview-container';
-    previewContainer.innerHTML = '<span class="photo-preview-text">點擊選擇檔案</span>';
-    
+    // 使用 Unicode 相機圖示和文字，將它們包在一個新的 span 裡面
+    previewContainer.innerHTML = `
+    <span class="photo-preview-content">
+        <span class="camera-icon">📸</span>
+        <span class="photo-preview-text">點擊選擇檔案</span>
+    </span>
+    `;
+
     const textLabel = document.createElement('label');
     textLabel.textContent = `文字 ${index + 1}(可下拉選擇)(可空白):`;
     const textInput = document.createElement('input');
