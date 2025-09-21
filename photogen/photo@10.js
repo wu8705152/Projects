@@ -182,15 +182,10 @@ addPhotoBlock.addEventListener('click', () => {
 const warningBanner = document.getElementById('warningBanner');
 const closeWarningBtn = document.querySelector('.warning-banner .close-btn');
 
-// 新增一個獨立的函數來控制橫幅顯示
-function updateWarningBanner() {
-    const hasPhotos = photoData.some(p => p.image);
-    if (hasPhotos) {
-        warningBanner.style.display = 'block';
-    } else {
-        warningBanner.style.display = 'none';
-    }
-}
+// 新增一個變數，追蹤橫幅是否已經顯示過
+let bannerHasBeenShown = false;
+
+// 為關閉按鈕添加點擊事件監聽器
 closeWarningBtn.addEventListener('click', () => {
     warningBanner.style.display = 'none';
 });
@@ -206,8 +201,12 @@ photoInputsContainer.addEventListener('change', async (e) => {
                 const img = new Image();
                 img.onload = () => {
                     photoData[index].image = img;
+                    // 只在上傳第一張照片時顯示橫幅
+                    if (!bannerHasBeenShown) {
+                        warningBanner.style.display = 'block';
+                        bannerHasBeenShown = true;
+                    }
                     block.querySelector('.photo-alert').classList.add('hidden');
-                    updateWarningBanner(); // <-- 在成功上傳後呼叫
                 };
                 img.src = e.target.result;
 
