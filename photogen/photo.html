@@ -1,596 +1,561 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+<title>排面照產生器</title>
 
-window.addEventListener('beforeunload', (event) => {
-    // 檢查是否有上傳任何照片
-    // 這裡假設 photoData.length > 1 或 photoData[0].image 存在時表示有照片
-    const hasUploadedPhotos = photoData.some(p => p.image);
-
-    if (hasUploadedPhotos) {
-        // 舊版瀏覽器需要設定 returnValue 屬性
-        event.returnValue = '您的照片尚未儲存，確定要離開嗎？';
-        
-        // 對於現代瀏覽器，返回字串即可觸發確認框
-        return '您的照片尚未儲存，確定要離開嗎？';
-    }
-});
-
-const classNameInput = document.getElementById('className');
-const photoInputsContainer = document.getElementById('photoInputsContainer');
-const addPhotoBlock = document.getElementById('addPhotoBlock');
-const combineBtn = document.getElementById('combineBtn');
-const canvas = document.getElementById('photoCanvas');
-const ctx = canvas.getContext('2d');
-const finalImage = document.getElementById('finalImage');
-
-const signatureCanvas = document.getElementById('signatureCanvas');
-const signatureCtx = signatureCanvas.getContext('2d');
-const enableSignatureBtn = document.getElementById('enableSignatureBtn');
-const clearSignatureBtn = document.getElementById('clearSignatureBtn');
-const infoBtn = document.getElementById('infoBtn');
-const infoModal = document.getElementById('infoModal');
-const closeButton = document.querySelector('.close-button');
-
-let isDrawing = false;
-let lastX = 0;
-let lastY = 0;
-let signatureDrawn = false;
-
-const MAX_PHOTOS = 8;
-let photoData = []; 
-
-const defaultTexts = [
-    "櫃台",
-    "麵包",
-    "泡麵",
-    "零食",
-    "啤酒",
-    "落地",
-    "騎樓",
-];
-
-function createPhotoInputBlock(index) {
-    const div = document.createElement('div');
-    div.className = 'photo-uploader';
-    div.setAttribute('data-index', index);
-    
-    if (index > 0) {
-        const deleteButton = document.createElement('button');
-        deleteButton.className = 'delete-btn';
-        deleteButton.setAttribute('title', '刪除');
-        deleteButton.innerHTML = '&times;';
-        div.appendChild(deleteButton);
-    }
-
-    const photoLabel = document.createElement('label');
-
-    const fileInput = document.createElement('input');
-    fileInput.type = 'file';
-    fileInput.className = 'photo-input';
-    fileInput.accept = 'image/*';
-    fileInput.capture = 'camera';
-    fileInput.id = `photo-input-${index}`;
-    div.appendChild(fileInput); 
-
-    const photoAlert = document.createElement('span');
-    photoAlert.className = 'photo-alert hidden';
-    photoAlert.textContent = '請上傳照片！';
-
-    const previewContainer = document.createElement('div');
-    previewContainer.className = 'photo-preview-container';
-    // 使用 Unicode 相機圖示和文字，將它們包在一個新的 span 裡面
-    previewContainer.innerHTML = `
-    <span class="photo-preview-content">
-        <span class="camera-icon">📸</span>
-        <span class="photo-preview-text">點擊選擇檔案</span>
-    </span>
-    `;
-
-    const textLabel = document.createElement('label');
-    textLabel.textContent = `區域 ${index + 1}(可空白):`;
-    const textInput = document.createElement('input');
-    textInput.setAttribute('list', 'textSuggestions');
-    textInput.type = 'text';
-    textInput.className = 'text-input';
-    textInput.placeholder = '請輸入或選擇文字(右側可下拉選擇)';
-    
-    div.appendChild(photoLabel);
-    div.appendChild(textLabel);
-    div.appendChild(textInput);
-    div.appendChild(photoAlert);
-    div.appendChild(previewContainer);
-
-    photoInputsContainer.insertBefore(div, addPhotoBlock);
+<style>
+body {
+  user-select: none; /* 禁用整個網頁的文字選取功能 */
+  -webkit-user-select: none; /* 針對 Safari 瀏覽器 */
+  -moz-user-select: none; /* 針對 Firefox 瀏覽器 */
+  -ms-user-select: none; /* 針對 IE/Edge 瀏覽器 */
+  font-family: Arial, sans-serif;
+  background-color: #f4f4f4;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  margin: 0;
+  padding: 20px;
 }
 
-function createDatalist() {
-    const datalist = document.createElement('datalist');
-    datalist.id = 'textSuggestions';
-    defaultTexts.forEach(text => {
-        const option = document.createElement('option');
-        option.value = text;
-        datalist.appendChild(option);
-    });
-    document.body.appendChild(datalist);
+.warning-banner {
+    position: fixed;/*sticky*/
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ff9800; /* 溫和的橘色 */
+    color: white;
+    text-align: center;
+    padding: 8px 0;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 1000;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: none; /* 預設隱藏 */
 }
 
-function checkAddButtonVisibility() {
-    if (photoData.length >= MAX_PHOTOS) {
-        addPhotoBlock.classList.add('hidden');
-    } else {
-        addPhotoBlock.classList.remove('hidden');
-    }
+.warning-banner .close-btn {
+    position: absolute; /* 新增此行 */
+    right: 10px; /* 距離右側 10px */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer; /* 顯示手形游標 */
+    padding: 0 5px; /* 增加點擊範圍 */
+    user-select: none; /* 防止選中文字 */
 }
 
-createDatalist();
-
-createPhotoInputBlock(0);
-photoData.push({});
-checkAddButtonVisibility();
-
-function hideAllAlerts() {
-    document.querySelectorAll('.photo-alert').forEach(alert => {
-        alert.classList.add('hidden');
-    });
+/* 新增的 CSS: 在彈出視窗開啟時，鎖定背景滾動 */
+body.no-scroll {
+    overflow: hidden;
 }
 
-addPhotoBlock.addEventListener('click', () => {
-    hideAllAlerts();
+.container {
+    background-color: #fff;
+    padding: 20px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 90%;
+    max-width: 900px;
+    box-sizing: border-box;
+    flex-grow: 1; 
+}
 
-    if (photoData.length >= MAX_PHOTOS) {
-        const lastBlock = document.querySelector(`.photo-uploader[data-index="${photoData.length - 1}"]`);
-        if (lastBlock) {
-            const alertElement = lastBlock.querySelector('.photo-alert');
-            alertElement.textContent = '最多只能新增 8 張照片！';
-            alertElement.classList.remove('hidden');
-        }
-        return;
-    }
+h1 {
+    color: #0056b3;
+    display: flex; /* 讓 h1 內容和按鈕並排 */
+    justify-content: center;
+    align-items: center;
+}
+
+.info-icon {
+    margin-left: 10px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    user-select: none; /* 防止文字被選取 */
+}
+
+.info-icon:hover {
+    background-color: #0056b3;
+}
+
+.controls {
+    margin-bottom: 20px;
+}
+
+#photoInputsContainer {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap; 
+    justify-content: center;
+    gap: 20px;
+    padding-right: 15px; 
+}
+
+.photo-uploader, #addPhotoBlock {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 15px;
+    border: 1px dashed #aaa; 
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    width: 45%; 
+}
+
+#addPhotoBlock {
+    cursor: pointer;
+    justify-content: center; 
+    align-items: center; 
+    font-size: 50px;
+    color: #ccc;
+    user-select: none; 
+    transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+    border: 2px dashed #ccc;
+}
+
+#addPhotoBlock:hover {
+    transform: scale(1.05);
+    color: #999;
+}
+
+.delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%; 
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    line-height: 1;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.photo-uploader .delete-btn:hover {
+    background-color: #c82333;
+}
+
+input[type="text"], input[type="file"], select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* 隱藏原本的檔案上傳按鈕 */
+.photo-input {
+    display: none;
+}
+
+/* 圖片預覽容器的基本樣式 */
+.photo-preview-container {
+    position: relative;
+    width: 100%;
+    height: 150px; /* 固定高度，確保所有預覽框一致 */
     
-    // 如果前一個區塊沒有照片，則給予提示，不新增
-    const lastPhotoData = photoData[photoData.length - 1];
-    if (!lastPhotoData.image && photoData.length > 0) { // 確保不是第一個區塊
-        const lastBlock = document.querySelector(`.photo-uploader[data-index="${photoData.length - 1}"]`);
-        if (lastBlock) {
-            const alertElement = lastBlock.querySelector('.photo-alert');
-            alertElement.textContent = '請先上傳照片！';
-            alertElement.classList.remove('hidden');
-            setTimeout(() => {
-                lastBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-        }
-        return;
-    }
-
-    const newIndex = photoData.length;
-    createPhotoInputBlock(newIndex);
-    photoData.push({});
-    checkAddButtonVisibility();
-
-    const newBlock = document.querySelector(`.photo-uploader[data-index="${newIndex}"]`);
-    if (newBlock) {
-        setTimeout(() => {
-            // 自動點擊新的檔案選擇輸入框
-            const newFileInput = newBlock.querySelector('.photo-input');
-            if (newFileInput) {
-                newFileInput.click();
-            }
-        }, 100);
-    }
-});
-
-// 取得警告橫幅元素
-const warningBanner = document.getElementById('warningBanner');
-const closeWarningBtn = document.querySelector('.warning-banner .close-btn');
-
-// 新增一個變數，追蹤橫幅是否已經顯示過
-let bannerHasBeenShown = false;
-
-// 為關閉按鈕添加點擊事件監聽器
-closeWarningBtn.addEventListener('click', () => {
-    warningBanner.style.display = 'none';
-});
-
-photoInputsContainer.addEventListener('change', async (e) => {
-    if (e.target.classList.contains('photo-input')) {
-        const block = e.target.closest('.photo-uploader');
-        const index = parseInt(block.dataset.index);
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    photoData[index].image = img;
-                    block.querySelector('.photo-alert').classList.add('hidden');
-                    
-                    if (!bannerHasBeenShown) {
-                        warningBanner.style.display = 'block';
-                        bannerHasBeenShown = true;
-                    }
-
-                    const previewContainer = block.querySelector('.photo-preview-container');
-                    previewContainer.innerHTML = ''; // 清空原有內容
-
-                    const previewImg = document.createElement('img');
-                    previewImg.className = 'photo-preview-image'; // 使用新的 class 名稱
-                    previewImg.src = e.target.result;
-                    previewContainer.appendChild(previewImg);
-
-                    // 新增 RETAKE 提示層
-                    const retakeOverlay = document.createElement('div');
-                    retakeOverlay.className = 'photo-retake-overlay';
-                    retakeOverlay.innerHTML = '<span class="camera-icon">📸</span> RETAKE';
-                    previewContainer.appendChild(retakeOverlay);
-                };
-                img.src = e.target.result;
-            };
-            
-            reader.readAsDataURL(file);
-
-            setTimeout(() => {
-                block.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center', 
-                    inline: 'nearest'
-                });
-            }, 100);
-        }
-    }
-
-    if (e.target.classList.contains('text-input')) {
-        e.target.blur();
-    }
-});
-
-photoInputsContainer.addEventListener('click', (e) => {
-    const previewContainer = e.target.closest('.photo-preview-container');
-    if (previewContainer) {
-        const fileInput = previewContainer.parentElement.querySelector('.photo-input');
-        if (fileInput) {
-            fileInput.click();
-        }
-    }
-});
-
-classNameInput.addEventListener('change', (e) => {
-    e.target.blur();
-});
-
-photoInputsContainer.addEventListener('click', (e) => {
-    if (e.target.classList.contains('delete-btn')) {
-        const block = e.target.closest('.photo-uploader');
-        const index = parseInt(block.dataset.index);
-        
-        block.remove();
-
-        photoData.splice(index, 1);
-        hideAllAlerts();
-
-        const photoBlocks = document.querySelectorAll('.photo-uploader');
-        photoBlocks.forEach((el, i) => {
-            el.dataset.index = i;
-            el.querySelector('label:nth-of-type(2)').textContent = `區域 ${i + 1}(可空白):`;
-            
-            const fileInput = el.querySelector('.photo-input');
-            fileInput.id = `photo-input-${i}`;
-        });
-        checkAddButtonVisibility();
-    }
-});
-
-function getClientCoordinates(event) {
-    if (event.touches && event.touches.length > 0) {
-        return {
-            x: event.touches[0].clientX,
-            y: event.touches[0].clientY
-        };
-    }
-    return {
-        x: event.clientX,
-        y: event.clientY
-    };
+    border: 2px dashed #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    
+    margin-top: 10px;
+    background-color: #e9e9e9;
+    cursor: pointer;
 }
 
-// 繪製提示文字
-function drawHintText(text) {
-    signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-    signatureCtx.fillStyle = '#888';
-    signatureCtx.font = '20px Arial';
-    signatureCtx.textAlign = 'center';
-    signatureCtx.textBaseline = 'middle';
-    signatureCtx.fillText(text, signatureCanvas.width / 2, signatureCanvas.height / 2);
+/* 圖片預覽的樣式 - 顯示完整圖片 */
+.photo-preview-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
 }
 
-// 啟用/禁用簽名繪製
-function toggleDrawing(enable) {
-    const drawingEvents = {
-        'mousedown': startDrawing,
-        'mouseup': stopDrawing,
-        'mouseout': stopDrawing,
-        'mousemove': draw,
-        'touchstart': (e) => { e.preventDefault(); startDrawing(e); },
-        'touchend': stopDrawing,
-        'touchcancel': stopDrawing,
-        'touchmove': (e) => { e.preventDefault(); draw(e); }
-    };
+/* 上傳前相機圖示和文字的樣式 */
+.photo-placeholder-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px;
+    text-align: center;
+}
 
-    if (enable) {
-        for (let event in drawingEvents) {
-            signatureCanvas.addEventListener(event, drawingEvents[event], { passive: false });
-        }
-        signatureCanvas.classList.remove('disabled');
-        signatureCanvas.classList.add('active');
-        
-        // 新增: 啟用時，將「啟用簽名」按鈕變為灰色並禁用
-        enableSignatureBtn.classList.add('button-disabled');
-        enableSignatureBtn.disabled = true;
+.camera-icon {
+    font-size: 48px;
+    line-height: 1;
+}
 
-        if(!signatureDrawn) {
-            drawHintText('開始簽名');
-        }
-    } else {
-        for (let event in drawingEvents) {
-            signatureCanvas.removeEventListener(event, drawingEvents[event]);
-        }
-        signatureCanvas.classList.remove('active');
-        signatureCanvas.classList.add('disabled');
-        
-        // 新增: 禁用時，將「啟用簽名」按鈕恢復正常
-        enableSignatureBtn.classList.remove('button-disabled');
-        enableSignatureBtn.disabled = false;
-        
-        drawHintText('點擊「啟用簽名」開始');
+.photo-preview-text {
+    color: #888;
+    font-size: 14px;
+}
+
+/* RETAKE 提示層的樣式 - 貼齊底部並單行顯示 */
+.photo-retake-overlay {
+    position: absolute;
+    bottom: 0; /* 關鍵修改：從 top: 0 改為 bottom: 0 */
+    left: 0;
+    width: 100%;
+    
+    /* 調整高度，只夠容納一行文字和圖標 */
+    height: 30px; 
+    
+    /* 關鍵修改：新增背景色和文字樣式 */
+    background-color: rgba(0, 0, 0, 0.4);
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    
+    display: flex;
+    justify-content: center; /* 讓內容水平置中 */
+    align-items: center; /* 讓內容垂直置中 */
+    
+    pointer-events: auto; /* 確保提示層可以點擊 */
+}
+
+.photo-retake-overlay .camera-icon {
+    font-size: 14px; /* 縮小圖標大小以適應新高度 */
+    margin-right: 5px; /* 圖標與文字間距 */
+}
+
+
+/* 確保上傳圖片後，提示文字被隱藏 */
+.photo-preview-container:has(.photo-preview-image) .photo-placeholder-content {
+    display: none;
+}
+
+.signature-section {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+#signatureCanvas {
+    width: 100%; 
+    max-width: 400px;
+    height: 150px;
+    background-color: #fff;
+    border-radius: 5px;
+    display: block; 
+    margin: 0 auto; 
+    transition: all 0.3s ease;
+}
+
+/* 禁用狀態的樣式 */
+#signatureCanvas.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: default;
+    border: 2px dashed #ccc;
+    background-color: #e9e9e9;
+}
+
+/* 啟用狀態的樣式 */
+#signatureCanvas.active {
+    pointer-events: auto;
+    opacity: 1;
+    cursor: crosshair;
+    border: 2px solid #007bff;
+    background-color: #fff;
+}
+
+.signature-controls {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+}
+
+button {
+    padding: 12px 24px;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    margin: 5px;
+}
+
+#combineBtn { background-color: #007bff; }
+#combineBtn:hover { background-color: #0056b3; }
+
+#enableSignatureBtn { background-color: #28a745; }
+#enableSignatureBtn:hover { background-color: #218838; }
+.button-disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+    border-color: #999;
+}
+
+#clearSignatureBtn { background-color: #dc3545; }
+#clearSignatureBtn:hover { background-color: #c82333; }
+
+
+.output-section {
+    margin-top: 20px;
+    display: none;
+}
+
+#finalImage {
+    max-width: 100%;
+    height: auto;
+    border: 2px solid #ccc;
+    display: none; 
+    margin: 20px auto 0;
+}
+
+#photoCanvas {
+    display: none; 
+}
+
+.photo-alert {
+    color: red;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+.hidden {
+    display: none !important;
+}
+
+footer {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #777;
+    text-align: center;
+}
+
+@media (max-width: 500px) {
+    .container {
+        padding: 20px 15px;
+        width: 95%;
+    }
+    .photo-uploader, #addPhotoBlock {
+        width: 100%; 
+        max-width: 350px; 
+    }
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
     }
 }
-
-function draw(event) {
-    if (!isDrawing) return;
-
-    const rect = signatureCanvas.getBoundingClientRect();
-    const clientCoords = getClientCoordinates(event);
-    const x = (clientCoords.x - rect.left) / rect.width * signatureCanvas.width;
-    const y = (clientCoords.y - rect.top) / rect.height * signatureCanvas.height;
-
-    signatureCtx.beginPath();
-    signatureCtx.moveTo(lastX, lastY);
-    signatureCtx.lineTo(x, y);
-    signatureCtx.stroke();
-    [lastX, lastY] = [x, y];
-    signatureDrawn = true;
+footer {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #777;
+    text-align: center;
 }
 
-function startDrawing(e) {
-    isDrawing = true;
-    const rect = signatureCanvas.getBoundingClientRect();
-    const clientCoords = getClientCoordinates(e);
-    lastX = (clientCoords.x - rect.left) / rect.width * signatureCanvas.width;
-    lastY = (clientCoords.y - rect.top) / rect.height * signatureCanvas.height;
-    
-    // 只有當畫布上沒有內容時才清除提示文字
-    if (!signatureDrawn) {
-        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+@media (max-width: 600px) {
+    .container {
+        padding: 20px 15px;
     }
-    
-    signatureCtx.beginPath(); 
-    signatureCtx.moveTo(lastX, lastY); 
-}
-
-function stopDrawing() {
-    isDrawing = false;
-}
-
-function clearSignature() {
-    signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
-    signatureDrawn = false;
-    toggleDrawing(false); 
-}
-
-function initSignatureCanvas() {
-    const rect = signatureCanvas.getBoundingClientRect();
-    signatureCanvas.width = rect.width;
-    signatureCanvas.height = rect.height;
-    
-    signatureCtx.lineWidth = 3;
-    signatureCtx.lineCap = 'round';
-    signatureCtx.strokeStyle = 'black';
-    signatureCtx.imageSmoothingEnabled = true;
-
-    toggleDrawing(false); 
-    
-    enableSignatureBtn.addEventListener('click', () => {
-        toggleDrawing(true);
-    });
-    clearSignatureBtn.addEventListener('click', clearSignature);
-}
-
-document.addEventListener('DOMContentLoaded', initSignatureCanvas);
-
-function openModal() {
-    infoModal.classList.add('visible');
-    document.body.classList.add('no-scroll');
-}
-
-function closeModal() {
-    infoModal.classList.remove('visible');
-    document.body.classList.remove('no-scroll');
-}
-
-// 綁定事件監聽器
-infoBtn.addEventListener('click', openModal);
-closeButton.addEventListener('click', closeModal);
-infoModal.addEventListener('click', (e) => {
-    if (e.target.id === 'infoModal') {
-        closeModal();
+    .photo-uploader, #addPhotoBlock {
+        width: 100%;
     }
-});
-
-combineBtn.addEventListener('click', async () => {
-    let hasError = false;
-    hideAllAlerts();
-    let firstErrorBlock = null;
-
-    document.querySelectorAll('.photo-uploader').forEach((block, i) => {
-        const textInput = block.querySelector('.text-input');
-        const photoAlert = block.querySelector('.photo-alert');
-
-        if (!photoData[i] || !photoData[i].image) {
-            photoAlert.textContent = '請上傳照片！';
-            photoAlert.classList.remove('hidden');
-            hasError = true;
-            if (!firstErrorBlock) {
-                firstErrorBlock = block;
-            }
-        } else {
-            photoAlert.classList.add('hidden');
-        }
-
-        if (photoData[i]) {
-            photoData[i].text = textInput.value;
-        }
-    });
-
-    if (hasError) {
-        if (firstErrorBlock) {
-            firstErrorBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-        return;
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
     }
-    
-    document.getElementById("output-section").style.display = "block"
-    const selectedPhotos = photoData.filter(p => p.image);
+}
+h2 {
+    white-space: nowrap; 
+    font-size: clamp(20px, 2vw, 24px); 
+}
 
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    ctx.shadowColor = 'transparent';
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.shadowBlur = 0;
+footer{
+    color: #c4c1c1;
+}
 
-    const padding = 20; // 這裡是唯一一次宣告 'padding' 的地方
-    const numPhotos = selectedPhotos.length;
-    let rows, cols;
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
 
-    if (numPhotos <= 4) {
-        rows = numPhotos === 3 || numPhotos === 4 ? 2 : 1;
-        cols = numPhotos === 3 ? 2 : (numPhotos === 4 ? 2 : numPhotos);
-    } else {
-        rows = 2;
-        cols = Math.ceil(numPhotos / 2);
-    }
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
 
-    const drawAreaHeight = canvas.height * 0.85;
-    const totalPhotoWidth = canvas.width - (cols + 1) * padding;
-    const totalPhotoHeight = drawAreaHeight - (rows + 1) * padding;
-    const photoCellWidth = totalPhotoWidth / cols;
-    const photoCellHeight = totalPhotoHeight / rows;
+.modal-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    text-align: left;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+    max-height: 80vh; 
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch; 
+}
 
-    selectedPhotos.forEach((data, i) => {
-        const row = Math.floor(i / cols);
-        const col = i % cols;
-        const x = col * (photoCellWidth + padding) + padding;
-        const y = row * (photoCellHeight + padding) + padding;
+.modal-overlay.visible .modal-content {
+    transform: translateY(0);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #0056b3;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.modal-content p {
+    line-height: 1.6;
+}
+
+.modal-content ul {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-button:hover {
+    color: #333;
+}
+.photo-tip {
+    color: #888;
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+}
+</style>
+</head>
+<body>
+<div class="warning-banner" id="warningBanner">
+    照片尚未儲存，離開頁面將會遺失。
+    <span class="close-btn">&times;</span>
+</div>
+    <div class="container">
+        <h1>排面照產生器<span id="infoBtn" class="info-icon">!</span></h1>
+
+        <div class="controls">
+            <label for="className">班別:</label>
+            <input list="classSuggestions" id="className" placeholder="請輸入班別">
+            <datalist id="classSuggestions">
+                <option value="早班"></option>
+                <option value="晚班"></option>
+                <option value="夜班"></option>
+            </datalist>
+        </div>
+
+        <div id="photoInputsContainer">
+            <div id="addPhotoBlock">
+                <span>+</span>
+                <p class="photo-tip">照片暫存在瀏覽器中，若重新整理或關閉網頁，照片就會消失，請多加留意！</p>
+            </div>
+        </div>
+
+        <div class="signature-section">
+            <h2>簽名 (可選)</h2>
+            <canvas id="signatureCanvas" class="disabled"></canvas>
+            <div class="signature-controls">
+                <button id="enableSignatureBtn">啟用簽名</button>
+                <button id="clearSignatureBtn">清除簽名</button>
+            </div>
+        </div>
+
+        <div class="action-buttons">
+            <button id="combineBtn">合併並生成照片</button>
+        </div>
+
+        <div class="output-section" id="output-section">
+            <h2>照片預覽(長按or右鍵儲存相片)</h2>
+            <canvas id="photoCanvas" width="2000" height="1400"></canvas>
+            <img id="finalImage" alt="合成排面照片">
+        </div>
         
-        const image = data.image;
-        const imageRatio = image.width / image.height;
-        const cellRatio = photoCellWidth / photoCellHeight;
-        
-        let drawX, drawY, drawWidth, drawHeight;
+<div id="infoModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>運作原理與理念</h2>
+        <p>本網頁專為零售業交班設計，操作簡單，能大幅減少拼貼所花的時間。雖然已有平板數位交班系統，但許多店點仍要求員工拍攝排面照片並上傳群組，常導致手機內相片越存越多。</p>
+        <p>為解決這個問題，本網頁會先將交班照片自動合成，之後使用者可依需求選擇：</p>
+        <ul>
+            <li><strong>儲存於相簿：</strong>僅保留最終的一張合成照片，避免手機空間被大量佔用。</li>
+            <li><strong>直接分享至工作群組：</strong>免去額外存檔步驟，讓交班流程更輕鬆有效率。</li>
+        </ul>
+        <p><em>⚠️ 本網頁為低成本製作，架設於 GitHub Pages，因此無法保證在多人同時使用時網頁流量不會受影響。</em></p>
+    </div>
+</div>
 
-        if (imageRatio > cellRatio) {
-            drawWidth = photoCellWidth;
-            drawHeight = photoCellWidth / imageRatio;
-            drawX = x;
-            drawY = y + (photoCellHeight - drawHeight) / 2;
-        } else {
-            drawHeight = photoCellHeight;
-            drawWidth = photoCellHeight * imageRatio;
-            drawX = x + (photoCellWidth - drawWidth) / 2;
-            drawY = y;
-        }
-        
-        ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
-        
-        const text = data.text || ``;
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 50px Arial';
-        ctx.textAlign = 'center';
-        
-        ctx.shadowColor = 'black';
-        ctx.shadowOffsetX = 3;
-        ctx.shadowOffsetY = 3;
-        ctx.shadowBlur = 5;
-        
-        ctx.fillText(text, x + photoCellWidth / 2, y + 80);
-        
-        ctx.shadowColor = 'transparent';
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = 0;
-        ctx.shadowBlur = 0;
-    });
-
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const day = now.getDate().toString().padStart(2, '0');
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const seconds = now.getSeconds().toString().padStart(2, '0');
-    
-    const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-    const className = classNameInput.value || '未輸入班別';
-
-    const textYOffset = canvas.height * 0.95;
-    const mainPadding = 50; // 這裡改用另一個變數名，避免衝突
-
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 35px Arial';
-    ctx.textAlign = 'right';
-
-    ctx.shadowColor = 'black';
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-    ctx.shadowBlur = 4;
-    
-    ctx.fillText(dateTimeString, canvas.width - mainPadding, textYOffset - 50);
-    ctx.fillText(`${className}`, canvas.width - mainPadding, textYOffset);
-    
-    ctx.shadowColor = 'transparent';
-    ctx.shadowOffsetX = 0;
-    ctx.shadowOffsetY = 0;
-    ctx.shadowBlur = 0;
-    
-    if (signatureDrawn) {
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = signatureCanvas.width;
-        tempCanvas.height = signatureCanvas.height;
-        const tempCtx = tempCanvas.getContext('2d');
-        
-        tempCtx.drawImage(signatureCanvas, 0, 0);
-
-        tempCtx.globalCompositeOperation = 'source-atop';
-        tempCtx.fillStyle = '#0000FF';
-        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-        tempCtx.globalCompositeOperation = 'source-over';
-        
-        const signatureRatio = tempCanvas.width / tempCanvas.height;
-        const targetSignatureWidth = canvas.width * 0.20;
-        const targetSignatureHeight = targetSignatureWidth / signatureRatio;
-
-        const signatureX = mainPadding;
-        const signatureY = canvas.height * 0.85 + (canvas.height * 0.15 - targetSignatureHeight)/2;
-        
-        ctx.drawImage(tempCanvas, signatureX, signatureY, targetSignatureWidth, targetSignatureHeight);
-    }
-    
-    const imageURL = canvas.toDataURL('image/jpeg', 0.9);
-    finalImage.src = imageURL;
-    finalImage.style.display = 'block';
-
-    setTimeout(() => {
-        finalImage.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        });
-    }, 100);
-});
+</div>
+<footer>
+    <p>Copyright © 2025 Edward. All rights reserved.</p>
+    <p>在 Gemini 的協助下完成。</p>
+    <p><strong>免責聲明：</strong>本網頁僅作為圖片處理工具，供個人使用，不提供檔案儲存或備份服務。使用者須自行確保所上傳內容之合法性與正確性。本網頁及開發者對於因使用本網頁所產生或引發之任何後果，概不負責。</p>
+</footer>
+</div>
+<script type="module" src="photo@5c.js"></script>
+</body>
+</html>
