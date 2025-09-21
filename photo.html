@@ -201,6 +201,17 @@ footer {
         gap: 10px;
     }
 }
+h1, h2 {
+    white-space: nowrap;     /* 不換行 */
+    overflow: hidden;        /* 超出隱藏 */
+    text-overflow: ellipsis; /* 超出顯示 "..." */
+}
+
+@media (max-width: 290px) {
+    h1, h2 {
+        max-width: 100%;  /* 限制標題寬度 */
+    }
+}
 footer{
     color: #c4c1c1;
 }
