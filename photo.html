@@ -228,7 +228,7 @@ footer{
                 <label>照片 ${index + 1}:</label>
                 <input type="file" class="photo-input" accept="image/*" capture="camera">
                 <span class="photo-alert hidden">請上傳照片！</span>
-                <label>文字 ${index + 1}(可下拉選擇):</label>
+                <label>文字 ${index + 1}(可下拉選擇)(可空白):</label>
                 <input list="textSuggestions" type="text" class="text-input" placeholder="請輸入或選擇文字">
             `;
             photoInputsContainer.appendChild(div);
@@ -444,8 +444,8 @@ footer{
             ctx.shadowOffsetY = 2;
             ctx.shadowBlur = 4;
             
-            ctx.fillText(dateTimeString, canvas.width - 20, canvas.height - 60);
-            ctx.fillText(`班別: ${className}`, canvas.width - 20, canvas.height - 20);
+            ctx.fillText(dateTimeString, canvas.width - 50, canvas.height - 60);
+            ctx.fillText(`${className}`, canvas.width - 50, canvas.height - 20);
             
             const imageURL = canvas.toDataURL('image/jpeg', 0.9);
             finalImage.src = imageURL;
