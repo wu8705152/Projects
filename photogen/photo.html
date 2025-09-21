@@ -23,23 +23,31 @@ body {
 }
 
 .warning-banner {
-    position: sticky;
+    position: fixed;/*sticky*/
     top: 0;
     left: 0;
     width: 100%;
-    /* 使用較柔和的背景色，如淺橘色或中性灰色 */
-    background-color: #ff9800;
-    /* 文字顏色 */
+    background-color: #ff9800; /* 溫和的橘色 */
     color: white;
     text-align: center;
-    /* 增加垂直內邊距 */
     padding: 8px 0;
     font-size: 16px;
     font-weight: bold;
     z-index: 1000;
-    /* 移除強烈的陰影，使用更細的邊框 */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     display: none; /* 預設隱藏 */
+}
+
+.warning-banner .close-btn {
+    position: absolute; /* 新增此行 */
+    right: 10px; /* 距離右側 10px */
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer; /* 顯示手形游標 */
+    padding: 0 5px; /* 增加點擊範圍 */
+    user-select: none; /* 防止選中文字 */
 }
 
 /* 新增的 CSS: 在彈出視窗開啟時，鎖定背景滾動 */
@@ -453,6 +461,7 @@ footer{
 <body>
 <div class="warning-banner" id="warningBanner">
     照片尚未儲存，離開頁面將會遺失。
+    <span class="close-btn">&times;</span>
 </div>
     <div class="container">
         <h1>排面照產生器<span id="infoBtn" class="info-icon">!</span></h1>
@@ -514,6 +523,6 @@ footer{
     <p><strong>免責聲明：</strong>本網頁僅作為圖片處理工具，供個人使用，不提供檔案儲存或備份服務。使用者須自行確保所上傳內容之合法性與正確性。本網頁及開發者對於因使用本網頁所產生或引發之任何後果，概不負責。</p>
 </footer>
 </div>
-<script src="photo@8.js"></script>
+<script src="photo@9.js"></script>
 </body>
 </html>
