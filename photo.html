@@ -942,7 +942,7 @@ combineBtn.addEventListener('click', async () => {
     const padding = 50;
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 35px Arial';
+    ctx.font = 'bold 50px Arial';
     ctx.textAlign = 'right';
 
     ctx.shadowColor = 'black';
@@ -950,7 +950,7 @@ combineBtn.addEventListener('click', async () => {
     ctx.shadowOffsetY = 2;
     ctx.shadowBlur = 4;
     
-    ctx.fillText(dateTimeString, canvas.width - padding, textYOffset - 50);
+    ctx.fillText(dateTimeString, canvas.width - padding, textYOffset - 60);
     ctx.fillText(`${className}`, canvas.width - padding, textYOffset);
     
     if (signatureDrawn) {
