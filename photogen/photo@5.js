@@ -413,7 +413,13 @@ combineBtn.addEventListener('click', async () => {
 
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    ctx.shadowColor = 'transparent';
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = 0;
 
+    const padding = 20; // 這裡是唯一一次宣告 'padding' 的地方
     const numPhotos = selectedPhotos.length;
     let rows, cols;
 
@@ -425,42 +431,34 @@ combineBtn.addEventListener('click', async () => {
         cols = Math.ceil(numPhotos / 2);
     }
 
-    // 將繪圖區域限制在畫布的上部 85%
-    const drawAreaHeight = canvas.height * 0.85; 
-    const photoCellWidth = canvas.width / cols;
-    const photoCellHeight = drawAreaHeight / rows;
-    const photoPadding = 20; // 每張照片之間的間距，您可以調整這個值
+    const drawAreaHeight = canvas.height * 0.85;
+    const totalPhotoWidth = canvas.width - (cols + 1) * padding;
+    const totalPhotoHeight = drawAreaHeight - (rows + 1) * padding;
+    const photoCellWidth = totalPhotoWidth / cols;
+    const photoCellHeight = totalPhotoHeight / rows;
+
     selectedPhotos.forEach((data, i) => {
         const row = Math.floor(i / cols);
         const col = i % cols;
-        const x = col * photoCellWidth;
-        const y = row * photoCellHeight;
-
-        // 計算包含間距的單元格起始位置
-        const cellStartX = col * photoCellWidth;
-        const cellStartY = row * photoCellHeight;
-        // 計算實際照片繪製區域的尺寸和位置（扣除間距）
-        const photoDrawAreaX = cellStartX + photoPadding / 2;
-        const photoDrawAreaY = cellStartY + photoPadding / 2;
-        const photoDrawAreaWidth = photoCellWidth - photoPadding;
-        const photoDrawAreaHeight = photoCellHeight - photoPadding;
-
+        const x = col * (photoCellWidth + padding) + padding;
+        const y = row * (photoCellHeight + padding) + padding;
+        
         const image = data.image;
         const imageRatio = image.width / image.height;
-        const cellRatio = photoDrawAreaWidth / photoDrawAreaHeight; // 使用縮小後的區域計算比例
+        const cellRatio = photoCellWidth / photoCellHeight;
         
         let drawX, drawY, drawWidth, drawHeight;
 
         if (imageRatio > cellRatio) {
-            drawWidth = photoDrawAreaWidth;
-            drawHeight = photoDrawAreaWidth / imageRatio;
-            drawX = photoDrawAreaX;
-            drawY = photoDrawAreaY + (photoDrawAreaHeight - drawHeight) / 2;
+            drawWidth = photoCellWidth;
+            drawHeight = photoCellWidth / imageRatio;
+            drawX = x;
+            drawY = y + (photoCellHeight - drawHeight) / 2;
         } else {
-            drawHeight = photoDrawAreaHeight;
-            drawWidth = photoDrawAreaHeight * imageRatio;
-            drawX = photoDrawAreaX + (photoDrawAreaWidth - drawWidth) / 2;
-            drawY = photoDrawAreaY;
+            drawHeight = photoCellHeight;
+            drawWidth = photoCellHeight * imageRatio;
+            drawX = x + (photoCellWidth - drawWidth) / 2;
+            drawY = y;
         }
         
         ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
@@ -474,7 +472,7 @@ combineBtn.addEventListener('click', async () => {
         ctx.shadowOffsetX = 3;
         ctx.shadowOffsetY = 3;
         ctx.shadowBlur = 5;
-
+        
         ctx.fillText(text, x + photoCellWidth / 2, y + 80);
         
         ctx.shadowColor = 'transparent';
@@ -482,7 +480,7 @@ combineBtn.addEventListener('click', async () => {
         ctx.shadowOffsetY = 0;
         ctx.shadowBlur = 0;
     });
-    
+
     const now = new Date();
     const year = now.getFullYear();
     const month = (now.getMonth() + 1).toString().padStart(2, '0');
@@ -494,12 +492,11 @@ combineBtn.addEventListener('click', async () => {
     const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
     const className = classNameInput.value || '未輸入班別';
 
-    // 繪製到畫布下方區域
     const textYOffset = canvas.height * 0.95;
-    const padding = 50;
+    const mainPadding = 50; // 這裡改用另一個變數名，避免衝突
 
     ctx.fillStyle = '#FFFFFF';
-    ctx.font = 'bold 50px Arial';
+    ctx.font = 'bold 35px Arial';
     ctx.textAlign = 'right';
 
     ctx.shadowColor = 'black';
@@ -507,30 +504,32 @@ combineBtn.addEventListener('click', async () => {
     ctx.shadowOffsetY = 2;
     ctx.shadowBlur = 4;
     
-    ctx.fillText(dateTimeString, canvas.width - padding, textYOffset - 60);
-    ctx.fillText(`${className}`, canvas.width - padding, textYOffset);
+    ctx.fillText(dateTimeString, canvas.width - mainPadding, textYOffset - 50);
+    ctx.fillText(`${className}`, canvas.width - mainPadding, textYOffset);
+    
+    ctx.shadowColor = 'transparent';
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = 0;
     
     if (signatureDrawn) {
-        // 創建一個臨時畫布來處理簽名顏色
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = signatureCanvas.width;
         tempCanvas.height = signatureCanvas.height;
         const tempCtx = tempCanvas.getContext('2d');
         
-        // 複製簽名到臨時畫布
         tempCtx.drawImage(signatureCanvas, 0, 0);
 
-        // 將臨時畫布上的簽名顏色變為藍色
         tempCtx.globalCompositeOperation = 'source-atop';
         tempCtx.fillStyle = '#0000FF';
         tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         tempCtx.globalCompositeOperation = 'source-over';
         
         const signatureRatio = tempCanvas.width / tempCanvas.height;
-        const targetSignatureWidth = canvas.width * 0.20; // 縮小為 20%
+        const targetSignatureWidth = canvas.width * 0.20;
         const targetSignatureHeight = targetSignatureWidth / signatureRatio;
 
-        const signatureX = padding;
+        const signatureX = mainPadding;
         const signatureY = canvas.height * 0.85 + (canvas.height * 0.15 - targetSignatureHeight)/2;
         
         ctx.drawImage(tempCanvas, signatureX, signatureY, targetSignatureWidth, targetSignatureHeight);
