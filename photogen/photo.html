@@ -6,7 +6,10 @@
     <title>排面照產生器</title>
     <style>
 body {
-  user-select: none;
+  user-select: none; /* 禁用整個網頁的文字選取功能 */
+  -webkit-user-select: none; /* 針對 Safari 瀏覽器 */
+  -moz-user-select: none; /* 針對 Firefox 瀏覽器 */
+  -ms-user-select: none; /* 針對 IE/Edge 瀏覽器 */
   font-family: Arial, sans-serif;
   background-color: #f4f4f4;
   color: #333;
