@@ -76,18 +76,19 @@ h1 {
     color: #999;
 }
 
-.photo-uploader .delete-btn {
+.delete-btn {
     position: absolute;
     top: 5px;
     right: 5px;
     background-color: #dc3545;
     color: white;
     border: none;
-    border-radius: 50%;
-    width: 25px;
-    height: 25px;
+    border-radius: 50%; /* 確保是圓形 */
+    width: 28px;
+    height: 28px;
+    padding: 0; /* 取消 button 預設內距 */
     line-height: 1;
-    font-size: 16px;
+    font-size: 18px;
     cursor: pointer;
     transition: background-color 0.3s;
     display: flex;
