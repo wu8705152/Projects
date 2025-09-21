@@ -1,3 +1,18 @@
+
+window.addEventListener('beforeunload', (event) => {
+    // 檢查是否有上傳任何照片
+    // 這裡假設 photoData.length > 1 或 photoData[0].image 存在時表示有照片
+    const hasUploadedPhotos = photoData.some(p => p.image);
+
+    if (hasUploadedPhotos) {
+        // 舊版瀏覽器需要設定 returnValue 屬性
+        event.returnValue = '您的照片尚未儲存，確定要離開嗎？';
+        
+        // 對於現代瀏覽器，返回字串即可觸發確認框
+        return '您的照片尚未儲存，確定要離開嗎？';
+    }
+});
+
 const classNameInput = document.getElementById('className');
 const photoInputsContainer = document.getElementById('photoInputsContainer');
 const addPhotoBlock = document.getElementById('addPhotoBlock');
