@@ -76,7 +76,7 @@ function createPhotoInputBlock(index) {
     textInput.setAttribute('list', 'textSuggestions');
     textInput.type = 'text';
     textInput.className = 'text-input';
-    textInput.placeholder = '請輸入或選擇文字';
+    textInput.placeholder = '請輸入或選擇文字(右側可下拉選擇)';
     
     div.appendChild(photoLabel);
     div.appendChild(textLabel);
@@ -231,7 +231,7 @@ photoInputsContainer.addEventListener('click', (e) => {
         photoBlocks.forEach((el, i) => {
             el.dataset.index = i;
             el.querySelector('label:nth-of-type(1)').textContent = `照片 ${i + 1}:`;
-            el.querySelector('label:nth-of-type(2)').textContent = `文字 ${i + 1}(可下拉選擇)(可空白):`;
+            el.querySelector('label:nth-of-type(2)').textContent = `區域 ${i + 1}(可空白):`;
             
             const fileInput = el.querySelector('.photo-input');
             fileInput.id = `photo-input-${i}`;
