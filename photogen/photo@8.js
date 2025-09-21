@@ -178,6 +178,19 @@ addPhotoBlock.addEventListener('click', () => {
     }
 });
 
+// 取得警告橫幅元素
+const warningBanner = document.getElementById('warningBanner');
+
+// 新增一個獨立的函數來控制橫幅顯示
+function updateWarningBanner() {
+    const hasPhotos = photoData.some(p => p.image);
+    if (hasPhotos) {
+        warningBanner.style.display = 'block';
+    } else {
+        warningBanner.style.display = 'none';
+    }
+}
+
 photoInputsContainer.addEventListener('change', async (e) => {
     if (e.target.classList.contains('photo-input')) {
         const block = e.target.closest('.photo-uploader');
@@ -190,6 +203,7 @@ photoInputsContainer.addEventListener('change', async (e) => {
                 img.onload = () => {
                     photoData[index].image = img;
                     block.querySelector('.photo-alert').classList.add('hidden');
+                    updateWarningBanner(); // <-- 在成功上傳後呼叫
                 };
                 img.src = e.target.result;
 
