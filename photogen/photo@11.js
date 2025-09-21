@@ -314,7 +314,12 @@ function toggleDrawing(enable) {
         }
         signatureCanvas.classList.remove('disabled');
         signatureCanvas.classList.add('active');
-        if(!signatureDrawn) { // 只有在尚未簽名時才顯示提示文字
+        
+        // 新增: 啟用時，將「啟用簽名」按鈕變為灰色並禁用
+        enableSignatureBtn.classList.add('button-disabled');
+        enableSignatureBtn.disabled = true;
+
+        if(!signatureDrawn) {
             drawHintText('開始簽名');
         }
     } else {
@@ -323,6 +328,11 @@ function toggleDrawing(enable) {
         }
         signatureCanvas.classList.remove('active');
         signatureCanvas.classList.add('disabled');
+        
+        // 新增: 禁用時，將「啟用簽名」按鈕恢復正常
+        enableSignatureBtn.classList.remove('button-disabled');
+        enableSignatureBtn.disabled = false;
+        
         drawHintText('點擊「啟用簽名」開始');
     }
 }
