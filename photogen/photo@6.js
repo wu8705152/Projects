@@ -71,7 +71,7 @@ function createPhotoInputBlock(index) {
     `;
 
     const textLabel = document.createElement('label');
-    textLabel.textContent = `文字 ${index + 1}(可下拉選擇)(可空白):`;
+    textLabel.textContent = `區域 ${index + 1}(可空白):`;
     const textInput = document.createElement('input');
     textInput.setAttribute('list', 'textSuggestions');
     textInput.type = 'text';
