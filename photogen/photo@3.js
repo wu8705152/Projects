@@ -429,29 +429,38 @@ combineBtn.addEventListener('click', async () => {
     const drawAreaHeight = canvas.height * 0.85; 
     const photoCellWidth = canvas.width / cols;
     const photoCellHeight = drawAreaHeight / rows;
-
+    const photoPadding = 20; // 每張照片之間的間距，您可以調整這個值
     selectedPhotos.forEach((data, i) => {
         const row = Math.floor(i / cols);
         const col = i % cols;
         const x = col * photoCellWidth;
         const y = row * photoCellHeight;
-        
+
+        // 計算包含間距的單元格起始位置
+        const cellStartX = col * photoCellWidth;
+        const cellStartY = row * photoCellHeight;
+        // 計算實際照片繪製區域的尺寸和位置（扣除間距）
+        const photoDrawAreaX = cellStartX + photoPadding / 2;
+        const photoDrawAreaY = cellStartY + photoPadding / 2;
+        const photoDrawAreaWidth = photoCellWidth - photoPadding;
+        const photoDrawAreaHeight = photoCellHeight - photoPadding;
+
         const image = data.image;
         const imageRatio = image.width / image.height;
-        const cellRatio = photoCellWidth / photoCellHeight;
+        const cellRatio = photoDrawAreaWidth / photoDrawAreaHeight; // 使用縮小後的區域計算比例
         
         let drawX, drawY, drawWidth, drawHeight;
 
         if (imageRatio > cellRatio) {
-            drawWidth = photoCellWidth;
-            drawHeight = photoCellWidth / imageRatio;
-            drawX = x;
-            drawY = y + (photoCellHeight - drawHeight) / 2;
+            drawWidth = photoDrawAreaWidth;
+            drawHeight = photoDrawAreaWidth / imageRatio;
+            drawX = photoDrawAreaX;
+            drawY = photoDrawAreaY + (photoDrawAreaHeight - drawHeight) / 2;
         } else {
-            drawHeight = photoCellHeight;
-            drawWidth = photoCellHeight * imageRatio;
-            drawX = x + (photoCellWidth - drawWidth) / 2;
-            drawY = y;
+            drawHeight = photoDrawAreaHeight;
+            drawWidth = photoDrawAreaHeight * imageRatio;
+            drawX = photoDrawAreaX + (photoDrawAreaWidth - drawWidth) / 2;
+            drawY = photoDrawAreaY;
         }
         
         ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
