@@ -5,150 +5,183 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <title>排面照產生器</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            color: #333;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-            padding: 20px;
-        }
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
 
-        .container {
-            background-color: #fff;
-            padding: 20px 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 90%;
-            max-width: 900px;
-            box-sizing: border-box;
-        }
+.container {
+    background-color: #fff;
+    padding: 20px 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 90%;
+    max-width: 900px;
+    box-sizing: border-box;
+    flex-grow: 1; 
+}
 
-        h1 {
-            color: #0056b3;
-        }
+h1 {
+    color: #0056b3;
+}
 
-        .controls {
-            margin-bottom: 20px;
-        }
-        
-        #photoInputsContainer {
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 20px;
-        }
+.controls {
+    margin-bottom: 20px;
+}
 
-        .photo-uploader {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 5px;
-            padding: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
+#photoInputsContainer {
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    /* 移除高度與捲軸設定，讓頁面整體捲動 */
+    /* max-height: 60vh; */
+    /* overflow-y: auto; */
+    padding-right: 15px; 
+}
 
-        .photo-uploader .delete-btn {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            line-height: 1;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .photo-uploader .delete-btn:hover {
-            background-color: #c82333;
-        }
+/* 統一照片區塊與新增按鈕的樣式基礎 */
+.photo-uploader, #addPhotoBlock {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    padding: 15px;
+    border: 1px dashed #aaa; 
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
 
-        input[type="text"], input[type="file"], select {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 10px;
-        }
+/* 新增按鈕的專屬樣式 */
+#addPhotoBlock {
+    cursor: pointer;
+    justify-content: center; /* 垂直居中 */
+    align-items: center; /* 水平居中 */
+    font-size: 50px;
+    color: #ccc;
+    user-select: none; 
+    transition: transform 0.2s ease-in-out, color 0.2s ease-in-out;
+    border: 2px dashed #ccc;
+}
 
-        button {
-            padding: 12px 24px;
-            color: #fff;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s;
-        }
+#addPhotoBlock:hover {
+    transform: scale(1.05);
+    color: #999;
+}
 
-        #addPhotoBtn { background-color: #28a745; }
-        #addPhotoBtn:hover { background-color: #218838; }
-        #combineBtn { background-color: #007bff; }
-        #combineBtn:hover { background-color: #0056b3; }
+.photo-uploader .delete-btn {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    line-height: 1;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-        .output-section {
-            margin-top: 20px;
-            display: none;
-        }
+.photo-uploader .delete-btn:hover {
+    background-color: #c82333;
+}
 
-        #finalImage {
-            max-width: 100%;
-            height: auto;
-            border: 2px solid #ccc;
-            display: none; /* 預設隱藏 */
-            margin: 20px auto 0;
-        }
+input[type="text"], input[type="file"], select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
 
-        #photoCanvas {
-            display: none; /* 畫布在生成圖片後隱藏 */
-        }
+.action-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin-top: 10px;
+}
 
-        .photo-alert {
-            color: red;
-            font-size: 14px;
-            font-weight: bold;
-            margin-top: 5px;
-        }
-        .hidden {
-            display: none;
-        }
-        
-        /* 響應式設計：小於 600px 寬度的螢幕 */
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px 15px;
-            }
-            .photo-uploader {
-                width: 100%;
-            }
-            .action-buttons {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
+button {
+    padding: 12px 24px;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    margin: 5px;
+}
 
+#addPhotoBtn { background-color: #28a745; }
+#addPhotoBtn:hover { background-color: #218838; }
+#combineBtn { background-color: #007bff; }
+#combineBtn:hover { background-color: #0056b3; }
+#downloadBtn { background-color: #17a2b8; }
+#downloadBtn:hover { background-color: #138496; }
+
+.output-section {
+    margin-top: 20px;
+}
+
+#finalImage {
+    max-width: 100%;
+    height: auto;
+    border: 2px solid #ccc;
+    display: none; 
+    margin: 20px auto 0;
+}
+
+#photoCanvas {
+    display: none; 
+}
+
+.photo-alert {
+    color: red;
+    font-size: 14px;
+    font-weight: bold;
+    margin-top: 5px;
+}
+.hidden {
+    display: none;
+}
+
+footer {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #777;
+    text-align: center;
+}
+
+/* 響應式設計：小於 600px 寬度的螢幕 */
+@media (max-width: 600px) {
+    .container {
+        padding: 20px 15px;
+    }
+    .photo-uploader, #addPhotoBlock {
+        width: 100%;
+    }
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
 footer{
     color: #c4c1c1;
 }
@@ -170,10 +203,12 @@ footer{
         </div>
 
         <div id="photoInputsContainer">
+            <div id="addPhotoBlock">
+                <span>+</span>
             </div>
+        </div>
 
         <div class="action-buttons">
-            <button id="addPhotoBtn">新增照片(上限8張)</button>
             <button id="combineBtn">合併並生成照片</button>
         </div>
 
@@ -189,268 +224,302 @@ footer{
     </p>
 </footer>
 
-    </div>
-    <script>
-        const classNameInput = document.getElementById('className');
-        const photoInputsContainer = document.getElementById('photoInputsContainer');
-        const addPhotoBtn = document.getElementById('addPhotoBtn');
-        const combineBtn = document.getElementById('combineBtn');
-        const canvas = document.getElementById('photoCanvas');
-        const ctx = canvas.getContext('2d');
-        const finalImage = document.getElementById('finalImage');
-        
-        const MAX_PHOTOS = 8;
-        let photoData = []; 
-        
-        const defaultTexts = [
-            "櫃台一",
-            "櫃台二",
-            "麵包",
-            "零食",
-            "落地",
-            "騎樓",
-        ];
+</div>
+<script>
+const classNameInput = document.getElementById('className');
+const photoInputsContainer = document.getElementById('photoInputsContainer');
+const addPhotoBtn = document.getElementById('addPhotoBtn');
+const combineBtn = document.getElementById('combineBtn');
+const canvas = document.getElementById('photoCanvas');
+const ctx = canvas.getContext('2d');
+const finalImage = document.getElementById('finalImage');
 
-        
-        // 創建一個新的照片輸入區塊
-        function createPhotoInputBlock(index) {
-            const div = document.createElement('div');
-            div.className = 'photo-uploader';
-            div.setAttribute('data-index', index);
-            
-            let deleteButtonHtml = '';
-            if (index > 0) {
-                deleteButtonHtml = '<button class="delete-btn" title="刪除">&times;</button>';
-            }
+const MAX_PHOTOS = 8;
+let photoData = []; 
 
-            div.innerHTML = `
-                ${deleteButtonHtml}
-                <label>照片 ${index + 1}:</label>
-                <input type="file" class="photo-input" accept="image/*" capture="camera">
-                <span class="photo-alert hidden">請上傳照片！</span>
-                <label>文字 ${index + 1}(可下拉選擇)(可空白):</label>
-                <input list="textSuggestions" type="text" class="text-input" placeholder="請輸入或選擇文字">
-            `;
-            photoInputsContainer.appendChild(div);
+const defaultTexts = [
+    "櫃台一",
+    "櫃台二",
+    "麵包",
+    "零食",
+    "落地",
+    "騎樓",
+];
+
+
+// 創建一個新的照片輸入區塊
+function createPhotoInputBlock(index) {
+    const div = document.createElement('div');
+    div.className = 'photo-uploader';
+    div.setAttribute('data-index', index);
+    
+    let deleteButtonHtml = '';
+    if (index > 0) {
+        deleteButtonHtml = '<button class="delete-btn" title="刪除">&times;</button>';
+    }
+
+    div.innerHTML = `
+        ${deleteButtonHtml}
+        <label>照片 ${index + 1}:</label>
+        <input type="file" class="photo-input" accept="image/*" capture="camera">
+        <span class="photo-alert hidden">請上傳照片！</span>
+        <label>文字 ${index + 1}(可下拉選擇)(可空白):</label>
+        <input list="textSuggestions" type="text" class="text-input" placeholder="請輸入或選擇文字">
+    `;
+        // 將新區塊插入到新增按鈕的前面，而非直接加在最後
+    photoInputsContainer.insertBefore(div, addPhotoBlock)
+}
+// 新增 `datalist` 到 HTML 中
+function createDatalist() {
+    const datalist = document.createElement('datalist');
+    datalist.id = 'textSuggestions';
+    defaultTexts.forEach(text => {
+        const option = document.createElement('option');
+        option.value = text;
+        datalist.appendChild(option);
+    });
+    document.body.appendChild(datalist);
+}
+
+createDatalist();
+
+// 初始載入第一個照片輸入區塊
+createPhotoInputBlock(0);
+photoData.push({});
+
+// 隱藏所有提示訊息
+function hideAllAlerts() {
+    document.querySelectorAll('.photo-alert').forEach(alert => {
+        alert.classList.add('hidden');
+    });
+}
+// 將新增照片的事件監聽器從 addPhotoBtn 移到 addPhotoBlock
+addPhotoBlock.addEventListener('click', () => {
+    hideAllAlerts();
+
+    if (photoData.length >= MAX_PHOTOS) {
+        const lastBlock = document.querySelector(`.photo-uploader[data-index="${photoData.length - 1}"]`);
+        if (lastBlock) {
+            const alertElement = lastBlock.querySelector('.photo-alert');
+            alertElement.textContent = '最多只能新增 8 張照片！';
+            alertElement.classList.remove('hidden');
         }
-        // 新增 `datalist` 到 HTML 中
-        function createDatalist() {
-            const datalist = document.createElement('datalist');
-            datalist.id = 'textSuggestions';
-            defaultTexts.forEach(text => {
-                const option = document.createElement('option');
-                option.value = text;
-                datalist.appendChild(option);
-            });
-            document.body.appendChild(datalist);
+        return;
+    }
+    
+    const lastPhotoData = photoData[photoData.length - 1];
+    if (!lastPhotoData.image) {
+        const lastBlock = document.querySelector(`.photo-uploader[data-index="${photoData.length - 1}"]`);
+        if (lastBlock) {
+            const alertElement = lastBlock.querySelector('.photo-alert');
+            alertElement.textContent = '請先上傳照片！';
+            alertElement.classList.remove('hidden');
         }
-        
-        createDatalist();
+        return;
+    }
 
-        // 初始載入第一個照片輸入區塊
-        createPhotoInputBlock(0);
-        photoData.push({});
+    const newIndex = photoData.length;
+    createPhotoInputBlock(newIndex);
+    photoData.push({});
 
-        // 隱藏所有提示訊息
-        function hideAllAlerts() {
-            document.querySelectorAll('.photo-alert').forEach(alert => {
-                alert.classList.add('hidden');
-            });
-        }
-
-        // 新增照片按鈕事件
-        addPhotoBtn.addEventListener('click', () => {
-            // 先隱藏所有提示訊息
-            hideAllAlerts();
-
-            // 檢查照片數量是否已達上限
-            if (photoData.length >= MAX_PHOTOS) {
-                // 找到最後一個照片區塊並顯示警告
-                const lastBlock = document.querySelector(`.photo-uploader[data-index="${photoData.length - 1}"]`);
-                if (lastBlock) {
-                    lastBlock.querySelector('.photo-alert').textContent = '最多只能新增 8 張照片！';
-                    lastBlock.querySelector('.photo-alert').classList.remove('hidden');
-                }
-                return;
-            }
-            
-            // 檢查前一個欄位是否已上傳照片
-            const lastPhotoData = photoData[photoData.length - 1];
-            if (!lastPhotoData.image) {
-                // 找到最後一個照片區塊並顯示警告
-                const lastBlock = document.querySelector(`.photo-uploader[data-index="${photoData.length - 1}"]`);
-                if (lastBlock) {
-                    lastBlock.querySelector('.photo-alert').textContent = '請先上傳照片！';
-                    lastBlock.querySelector('.photo-alert').classList.remove('hidden');
-                }
-                return;
-            }
-
-            const newIndex = photoData.length;
-            createPhotoInputBlock(newIndex);
-            photoData.push({});
-        });
-
-        // 監聽照片輸入框的改變事件 (事件代理)
-        photoInputsContainer.addEventListener('change', async (e) => {
-            if (e.target.classList.contains('photo-input')) {
-                const block = e.target.closest('.photo-uploader');
-                const index = parseInt(block.dataset.index);
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const img = new Image();
-                        img.onload = () => {
-                            photoData[index].image = img;
-                            // 如果有照片，隱藏警示訊息
-                            block.querySelector('.photo-alert').classList.add('hidden');
-                        };
-                        img.src = e.target.result;
-                    };
-                    reader.readAsDataURL(file);
-                }
-            }
-        });
-
-        // 監聽刪除按鈕點擊事件 (事件代理)
-        photoInputsContainer.addEventListener('click', (e) => {
-            if (e.target.classList.contains('delete-btn')) {
-                const block = e.target.closest('.photo-uploader');
-                const index = parseInt(block.dataset.index);
-                
-                block.remove();
-
-                photoData.splice(index, 1);
-                hideAllAlerts();
-
-                document.querySelectorAll('.photo-uploader').forEach((el, i) => {
-                    el.dataset.index = i;
-                    el.querySelector('label:nth-of-type(1)').textContent = `照片 ${i + 1}:`;
-                    el.querySelector('label:nth-of-type(2)').textContent = `文字 ${i + 1}:`;
+    // 新增完馬上捲到新欄位
+        const newBlock = document.querySelector(`.photo-uploader[data-index="${newIndex}"]`);
+        if (newBlock) {
+            setTimeout(() => {
+                newBlock.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                    inline: 'nearest'
                 });
-            }
+            }, 100);
+        }
+    
+});
+// 監聽照片輸入框的改變事件 (事件代理)
+photoInputsContainer.addEventListener('change', async (e) => {
+    if (e.target.classList.contains('photo-input')) {
+        const block = e.target.closest('.photo-uploader');
+        const index = parseInt(block.dataset.index);
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const img = new Image();
+                img.onload = () => {
+                    photoData[index].image = img;
+                    // 如果有照片，隱藏警示訊息
+                    block.querySelector('.photo-alert').classList.add('hidden');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        // 在檔案選擇後，將區塊捲動到螢幕中間
+            setTimeout(() => {
+                block.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center', // 捲到螢幕正中間
+                    inline: 'nearest'
+                });
+            }, 100);
+
+        }
+    }
+    // 監聽文字輸入框的變化，並使其失去焦點
+    if (e.target.classList.contains('text-input')) {
+        e.target.blur();
+    }
+});
+
+// 獨立監聽班別輸入框的變化，並使其失去焦點
+classNameInput.addEventListener('change', (e) => {
+    e.target.blur();
+});
+// 監聽刪除按鈕點擊事件 (事件代理)
+photoInputsContainer.addEventListener('click', (e) => {
+    if (e.target.classList.contains('delete-btn')) {
+        const block = e.target.closest('.photo-uploader');
+        const index = parseInt(block.dataset.index);
+        
+        block.remove();
+
+        photoData.splice(index, 1);
+        hideAllAlerts();
+
+        document.querySelectorAll('.photo-uploader').forEach((el, i) => {
+            el.dataset.index = i;
+            el.querySelector('label:nth-of-type(1)').textContent = `照片 ${i + 1}:`;
+            el.querySelector('label:nth-of-type(2)').textContent = `文字 ${i + 1}:`;
         });
+    }
+});
 
-        // 合併照片的邏輯
-        combineBtn.addEventListener('click', async () => {
-            let hasError = false;
-            // 先隱藏所有提示訊息，避免累積
-            hideAllAlerts();
+// 合併照片的邏輯
+combineBtn.addEventListener('click', async () => {
+    let hasError = false;
+    // 先隱藏所有提示訊息，避免累積
+    hideAllAlerts();
 
-            document.querySelectorAll('.photo-uploader').forEach((block, i) => {
-                const textInput = block.querySelector('.text-input');
-                const photoAlert = block.querySelector('.photo-alert');
+    document.querySelectorAll('.photo-uploader').forEach((block, i) => {
+        const textInput = block.querySelector('.text-input');
+        const photoAlert = block.querySelector('.photo-alert');
 
-                if (!photoData[i] || !photoData[i].image) {
-                    photoAlert.textContent = '請上傳照片！';
-                    photoAlert.classList.remove('hidden');
-                    hasError = true;
-                } else {
-                    photoAlert.classList.add('hidden');
-                }
+        if (!photoData[i] || !photoData[i].image) {
+            photoAlert.textContent = '請上傳照片！';
+            photoAlert.classList.remove('hidden');
+            hasError = true;
+        } else {
+            photoAlert.classList.add('hidden');
+        }
 
-                if (photoData[i]) {
-                    photoData[i].text = textInput.value;
-                }
-            });
+        if (photoData[i]) {
+            photoData[i].text = textInput.value;
+        }
+    });
 
-            if (hasError) {
-                // 如果有錯誤，直接結束，不生成圖片
-                return;
-            }
-            
-            document.getElementById("output-section").style.display = "block"
-            const selectedPhotos = photoData.filter(p => p.image);
+    if (hasError) {
+        // 如果有錯誤，直接結束，不生成圖片
+        return;
+    }
+    
+    document.getElementById("output-section").style.display = "block"
+    const selectedPhotos = photoData.filter(p => p.image);
 
-            ctx.fillStyle = '#FFFFFF';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const numPhotos = selectedPhotos.length;
-            let rows, cols;
+    const numPhotos = selectedPhotos.length;
+    let rows, cols;
 
-            if (numPhotos <= 4) {
-                rows = numPhotos === 3 || numPhotos === 4 ? 2 : 1;
-                cols = numPhotos === 3 ? 2 : (numPhotos === 4 ? 2 : numPhotos);
-            } else {
-                rows = 2;
-                cols = Math.ceil(numPhotos / 2);
-            }
+    if (numPhotos <= 4) {
+        rows = numPhotos === 3 || numPhotos === 4 ? 2 : 1;
+        cols = numPhotos === 3 ? 2 : (numPhotos === 4 ? 2 : numPhotos);
+    } else {
+        rows = 2;
+        cols = Math.ceil(numPhotos / 2);
+    }
 
-            const cellWidth = canvas.width / cols;
-            const cellHeight = canvas.height / rows;
+    const cellWidth = canvas.width / cols;
+    const cellHeight = canvas.height / rows;
 
-            selectedPhotos.forEach((data, i) => {
-                const row = Math.floor(i / cols);
-                const col = i % cols;
-                const x = col * cellWidth;
-                const y = row * cellHeight;
-                
-                const image = data.image;
-                const imageRatio = image.width / image.height;
-                const cellRatio = cellWidth / cellHeight;
-                
-                let drawX, drawY, drawWidth, drawHeight;
+    selectedPhotos.forEach((data, i) => {
+        const row = Math.floor(i / cols);
+        const col = i % cols;
+        const x = col * cellWidth;
+        const y = row * cellHeight;
+        
+        const image = data.image;
+        const imageRatio = image.width / image.height;
+        const cellRatio = cellWidth / cellHeight;
+        
+        let drawX, drawY, drawWidth, drawHeight;
 
-                if (imageRatio > cellRatio) {
-                    drawWidth = cellWidth;
-                    drawHeight = cellWidth / imageRatio;
-                    drawX = x;
-                    drawY = y + (cellHeight - drawHeight) / 2;
-                } else {
-                    drawHeight = cellHeight;
-                    drawWidth = cellHeight * imageRatio;
-                    drawX = x + (cellWidth - drawWidth) / 2;
-                    drawY = y;
-                }
-                
-                ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
-                
-                const text = data.text || ``;
-                ctx.fillStyle = '#FFFFFF';
-                ctx.font = 'bold 50px Arial';
-                ctx.textAlign = 'center';
-                
-                ctx.shadowColor = 'black';
-                ctx.shadowOffsetX = 3;
-                ctx.shadowOffsetY = 3;
-                ctx.shadowBlur = 5;
+        if (imageRatio > cellRatio) {
+            drawWidth = cellWidth;
+            drawHeight = cellWidth / imageRatio;
+            drawX = x;
+            drawY = y + (cellHeight - drawHeight) / 2;
+        } else {
+            drawHeight = cellHeight;
+            drawWidth = cellHeight * imageRatio;
+            drawX = x + (cellWidth - drawWidth) / 2;
+            drawY = y;
+        }
+        
+        ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
+        
+        const text = data.text || ``;
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 50px Arial';
+        ctx.textAlign = 'center';
+        
+        ctx.shadowColor = 'black';
+        ctx.shadowOffsetX = 3;
+        ctx.shadowOffsetY = 3;
+        ctx.shadowBlur = 5;
 
-                ctx.fillText(text, x + cellWidth / 2, y + 80);
-                
-                ctx.shadowColor = 'transparent';
-                ctx.shadowOffsetX = 0;
-                ctx.shadowOffsetY = 0;
-                ctx.shadowBlur = 0;
-            });
-            
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = (now.getMonth() + 1).toString().padStart(2, '0');
-            const day = now.getDate().toString().padStart(2, '0');
-            const hours = now.getHours().toString().padStart(2, '0');
-            const minutes = now.getMinutes().toString().padStart(2, '0');
-            const seconds = now.getSeconds().toString().padStart(2, '0');
-            
-            const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
-            const className = classNameInput.value || '未輸入班別';
+        ctx.fillText(text, x + cellWidth / 2, y + 80);
+        
+        ctx.shadowColor = 'transparent';
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = 0;
+        ctx.shadowBlur = 0;
+    });
+    
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+    const day = now.getDate().toString().padStart(2, '0');
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    const seconds = now.getSeconds().toString().padStart(2, '0');
+    
+    const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+    const className = classNameInput.value || '未輸入班別';
 
-            ctx.fillStyle = '#FFFFFF';
-            ctx.font = 'bold 35px Arial';
-            ctx.textAlign = 'right';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.font = 'bold 35px Arial';
+    ctx.textAlign = 'right';
 
-            ctx.shadowColor = 'black';
-            ctx.shadowOffsetX = 2;
-            ctx.shadowOffsetY = 2;
-            ctx.shadowBlur = 4;
-            
-            ctx.fillText(dateTimeString, canvas.width - 50, canvas.height - 60);
-            ctx.fillText(`${className}`, canvas.width - 50, canvas.height - 20);
-            
-            const imageURL = canvas.toDataURL('image/jpeg', 0.9);
-            finalImage.src = imageURL;
-            finalImage.style.display = 'block';
+    ctx.shadowColor = 'black';
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    ctx.shadowBlur = 4;
+    
+    ctx.fillText(dateTimeString, canvas.width - 50, canvas.height - 60);
+    ctx.fillText(`${className}`, canvas.width - 50, canvas.height - 20);
+    
+    const imageURL = canvas.toDataURL('image/jpeg', 0.9);
+    finalImage.src = imageURL;
+    finalImage.style.display = 'block';
+
+    // 合成完成後，自動捲動到預覽照片
+    setTimeout(() => {
+        finalImage.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
         });
-    </script>
+    }, 100);
+});
+</script>
 </body>
 </html>
