@@ -18,6 +18,11 @@ body {
     padding: 20px;
 }
 
+/* 新增的 CSS: 在彈出視窗開啟時，鎖定背景滾動 */
+body.no-scroll {
+    overflow: hidden;
+}
+
 .container {
     background-color: #fff;
     padding: 20px 40px;
@@ -32,6 +37,30 @@ body {
 
 h1 {
     color: #0056b3;
+    display: flex; /* 讓 h1 內容和按鈕並排 */
+    justify-content: center;
+    align-items: center;
+}
+
+.info-icon {
+    margin-left: 10px;
+    background-color: #007bff;
+    color: white;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    user-select: none; /* 防止文字被選取 */
+}
+
+.info-icon:hover {
+    background-color: #0056b3;
 }
 
 .controls {
@@ -41,7 +70,7 @@ h1 {
 #photoInputsContainer {
     margin-bottom: 20px;
     display: flex;
-    flex-wrap: wrap; /* 內容超出時自動換行 */
+    flex-wrap: wrap; 
     justify-content: center;
     gap: 20px;
     padding-right: 15px; 
@@ -57,7 +86,7 @@ h1 {
     border: 1px dashed #aaa; 
     border-radius: 5px;
     background-color: #f9f9f9;
-    width: 45%; /* 設定固定的寬度，使其在兩欄排版時穩定 */
+    width: 45%; 
 }
 
 #addPhotoBlock {
@@ -83,10 +112,10 @@ h1 {
     background-color: #dc3545;
     color: white;
     border: none;
-    border-radius: 50%; /* 確保是圓形 */
+    border-radius: 50%; 
     width: 28px;
     height: 28px;
-    padding: 0; /* 取消 button 預設內距 */
+    padding: 0;
     line-height: 1;
     font-size: 18px;
     cursor: pointer;
@@ -108,6 +137,85 @@ input[type="text"], input[type="file"], select {
     box-sizing: border-box;
 }
 
+/* 隱藏原本的檔案上傳按鈕 */
+.photo-input {
+    display: none;
+}
+
+.photo-preview-container {
+    width: 100%;
+    min-height: 150px;
+    border: 2px dashed #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin-top: 10px;
+    background-color: #e9e9e9;
+    cursor: pointer; /* 讓整個預覽區塊可以點擊 */
+    text-align: center;
+}
+
+.photo-preview {
+    max-width: 100%;
+    max-height: 150px;
+    display: none; 
+}
+
+/* 新增的預覽區塊提示文字樣式 */
+.photo-preview-text {
+    color: #888;
+    font-size: 14px;
+    padding: 20px;
+}
+
+.signature-section {
+    margin: 20px 0;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+#signatureCanvas {
+    width: 100%; 
+    max-width: 400px;
+    height: 150px;
+    background-color: #fff;
+    border-radius: 5px;
+    display: block; 
+    margin: 0 auto; 
+    transition: all 0.3s ease;
+}
+
+/* 禁用狀態的樣式 */
+#signatureCanvas.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+    cursor: default;
+    border: 2px dashed #ccc;
+    background-color: #e9e9e9;
+}
+
+/* 啟用狀態的樣式 */
+#signatureCanvas.active {
+    pointer-events: auto;
+    opacity: 1;
+    cursor: crosshair;
+    border: 2px solid #007bff;
+    background-color: #fff;
+}
+
+.signature-controls {
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
 .action-buttons {
     display: flex;
     justify-content: center;
@@ -126,12 +234,15 @@ button {
     margin: 5px;
 }
 
-#addPhotoBtn { background-color: #28a745; }
-#addPhotoBtn:hover { background-color: #218838; }
 #combineBtn { background-color: #007bff; }
 #combineBtn:hover { background-color: #0056b3; }
-#downloadBtn { background-color: #17a2b8; }
-#downloadBtn:hover { background-color: #138496; }
+
+#enableSignatureBtn { background-color: #28a745; }
+#enableSignatureBtn:hover { background-color: #218838; }
+
+#clearSignatureBtn { background-color: #dc3545; }
+#clearSignatureBtn:hover { background-color: #c82333; }
+
 
 .output-section {
     margin-top: 20px;
@@ -167,14 +278,13 @@ footer {
     text-align: center;
 }
 
-/* 響應式設計：小於 500px 寬度螢幕 */
 @media (max-width: 500px) {
     .container {
         padding: 20px 15px;
         width: 95%;
     }
     .photo-uploader, #addPhotoBlock {
-        width: 100%; /* 小螢幕下，單欄顯示 */
+        width: 100%; 
         max-width: 350px; 
     }
     .action-buttons {
@@ -189,7 +299,6 @@ footer {
     text-align: center;
 }
 
-/* 響應式設計：小於 600px 寬度的螢幕 */
 @media (max-width: 600px) {
     .container {
         padding: 20px 15px;
@@ -203,20 +312,92 @@ footer {
     }
 }
 h2 {
-    white-space: nowrap;        /* 不換行 */
+    white-space: nowrap; 
     font-size: clamp(20px, 2vw, 24px); 
-    /* 根據螢幕寬度自動縮放字體，最小14px 最大24px */
 }
 
 footer{
     color: #c4c1c1;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    position: relative;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    text-align: left;
+    transform: translateY(-20px);
+    transition: transform 0.3s ease;
+    max-height: 80vh; 
+    overflow-y: auto; 
+    -webkit-overflow-scrolling: touch; 
+}
+
+.modal-overlay.visible .modal-content {
+    transform: translateY(0);
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    font-size: 24px;
+    color: #0056b3;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+.modal-content p {
+    line-height: 1.6;
+}
+
+.modal-content ul {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    color: #aaa;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-button:hover {
+    color: #333;
 }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>排面照產生器</h1>
+        <h1>排面照產生器<span id="infoBtn" class="info-icon">!</span></h1>
 
         <div class="controls">
             <label for="className">班別:</label>
@@ -234,18 +415,44 @@ footer{
             </div>
         </div>
 
+        <div class="signature-section">
+            <h2>簽名 (可選)</h2>
+            <canvas id="signatureCanvas" class="disabled"></canvas>
+            <div class="signature-controls">
+                <button id="enableSignatureBtn">啟用簽名</button>
+                <button id="clearSignatureBtn">清除簽名</button>
+            </div>
+        </div>
+
         <div class="action-buttons">
             <button id="combineBtn">合併並生成照片</button>
         </div>
 
         <div class="output-section" id="output-section">
             <h2>照片預覽(長按or右鍵儲存相片)</h2>
-            <canvas id="photoCanvas" width="2000" height="1200"></canvas>
+            <canvas id="photoCanvas" width="2000" height="1400"></canvas>
             <img id="finalImage" alt="合成排面照片">
         </div>
+        
+<div id="infoModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>運作原理與理念</h2>
+        <p>本網頁專為零售業交班設計，操作簡單，能大幅減少拼貼所花的時間。雖然已有平板數位交班系統，但許多店點仍要求員工拍攝排面照片並上傳群組，常導致手機內相片越存越多。</p>
+        <p>為解決這個問題，本網頁會先將交班照片自動合成，之後使用者可依需求選擇：</p>
+        <ul>
+            <li><strong>儲存於相簿：</strong>僅保留最終的一張合成照片，避免手機空間被大量佔用。</li>
+            <li><strong>直接分享至工作群組：</strong>免去額外存檔步驟，讓交班流程更輕鬆有效率。</li>
+        </ul>
+        <p><em>⚠️ 本網頁為低成本製作，架設於 GitHub Pages，因此無法保證在多人同時使用時網頁流量不會受影響。</em></p>
+    </div>
+</div>
+
+</div>
 <footer>
     <p>
     Copyright © 2025 Edward. All rights reserved.<br>
+    在Gemini的協助下完成。<br>
     免責聲明：本應用程式為圖片處理工具，僅供個人使用，不提供檔案儲存或備份服務。使用者上傳之內容，應確保其合法性，本程式對任何因使用本應用程式而產生之內容不負任何責任。
     </p>
 </footer>
@@ -260,6 +467,19 @@ const canvas = document.getElementById('photoCanvas');
 const ctx = canvas.getContext('2d');
 const finalImage = document.getElementById('finalImage');
 
+const signatureCanvas = document.getElementById('signatureCanvas');
+const signatureCtx = signatureCanvas.getContext('2d');
+const enableSignatureBtn = document.getElementById('enableSignatureBtn');
+const clearSignatureBtn = document.getElementById('clearSignatureBtn');
+const infoBtn = document.getElementById('infoBtn');
+const infoModal = document.getElementById('infoModal');
+const closeButton = document.querySelector('.close-button');
+
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+let signatureDrawn = false;
+
 const MAX_PHOTOS = 8;
 let photoData = []; 
 
@@ -273,30 +493,55 @@ const defaultTexts = [
     "騎樓",
 ];
 
-
-// 創建一個新的照片輸入區塊
 function createPhotoInputBlock(index) {
     const div = document.createElement('div');
     div.className = 'photo-uploader';
     div.setAttribute('data-index', index);
     
-    let deleteButtonHtml = '';
     if (index > 0) {
-        deleteButtonHtml = '<button class="delete-btn" title="刪除">&times;</button>';
+        const deleteButton = document.createElement('button');
+        deleteButton.className = 'delete-btn';
+        deleteButton.setAttribute('title', '刪除');
+        deleteButton.innerHTML = '&times;';
+        div.appendChild(deleteButton);
     }
 
-    div.innerHTML = `
-        ${deleteButtonHtml}
-        <label>照片 ${index + 1}:</label>
-        <input type="file" class="photo-input" accept="image/*" capture="camera">
-        <span class="photo-alert hidden">請上傳照片！</span>
-        <label>文字 ${index + 1}(可下拉選擇)(可空白):</label>
-        <input list="textSuggestions" type="text" class="text-input" placeholder="請輸入或選擇文字">
-    `;
-        // 將新區塊插入到新增按鈕的前面，而非直接加在最後
-    photoInputsContainer.insertBefore(div, addPhotoBlock)
+    const photoLabel = document.createElement('label');
+    photoLabel.textContent = `照片 ${index + 1}:`;
+
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.className = 'photo-input';
+    fileInput.accept = 'image/*';
+    fileInput.capture = 'camera';
+    fileInput.id = `photo-input-${index}`;
+    div.appendChild(fileInput); 
+
+    const photoAlert = document.createElement('span');
+    photoAlert.className = 'photo-alert hidden';
+    photoAlert.textContent = '請上傳照片！';
+
+    const previewContainer = document.createElement('div');
+    previewContainer.className = 'photo-preview-container';
+    previewContainer.innerHTML = '<span class="photo-preview-text">點擊選擇檔案</span>';
+    
+    const textLabel = document.createElement('label');
+    textLabel.textContent = `文字 ${index + 1}(可下拉選擇)(可空白):`;
+    const textInput = document.createElement('input');
+    textInput.setAttribute('list', 'textSuggestions');
+    textInput.type = 'text';
+    textInput.className = 'text-input';
+    textInput.placeholder = '請輸入或選擇文字';
+    
+    div.appendChild(photoLabel);
+    div.appendChild(textLabel);
+    div.appendChild(textInput);
+    div.appendChild(photoAlert);
+    div.appendChild(previewContainer);
+
+    photoInputsContainer.insertBefore(div, addPhotoBlock);
 }
-// 新增 `datalist` 到 HTML 中
+
 function createDatalist() {
     const datalist = document.createElement('datalist');
     datalist.id = 'textSuggestions';
@@ -318,18 +563,16 @@ function checkAddButtonVisibility() {
 
 createDatalist();
 
-// 初始載入第一個照片輸入區塊
 createPhotoInputBlock(0);
 photoData.push({});
-checkAddButtonVisibility(); // 首次載入時檢查按鈕狀態
+checkAddButtonVisibility();
 
-// 隱藏所有提示訊息
 function hideAllAlerts() {
     document.querySelectorAll('.photo-alert').forEach(alert => {
         alert.classList.add('hidden');
     });
 }
-// 將新增照片的事件監聽器從 addPhotoBtn 移到 addPhotoBlock
+
 addPhotoBlock.addEventListener('click', () => {
     hideAllAlerts();
 
@@ -350,6 +593,10 @@ addPhotoBlock.addEventListener('click', () => {
             const alertElement = lastBlock.querySelector('.photo-alert');
             alertElement.textContent = '請先上傳照片！';
             alertElement.classList.remove('hidden');
+            // 新增滾動功能
+            setTimeout(() => {
+                lastBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
         }
         return;
     }
@@ -357,22 +604,20 @@ addPhotoBlock.addEventListener('click', () => {
     const newIndex = photoData.length;
     createPhotoInputBlock(newIndex);
     photoData.push({});
-    checkAddButtonVisibility(); // 檢查按鈕狀態
+    checkAddButtonVisibility();
 
-    // 新增完馬上捲到新欄位
-        const newBlock = document.querySelector(`.photo-uploader[data-index="${newIndex}"]`);
-        if (newBlock) {
-            setTimeout(() => {
-                newBlock.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center',
-                    inline: 'nearest'
-                });
-            }, 100);
-        }
-    
+    const newBlock = document.querySelector(`.photo-uploader[data-index="${newIndex}"]`);
+    if (newBlock) {
+        setTimeout(() => {
+            newBlock.scrollIntoView({
+                behavior: 'smooth',
+                block: 'center', 
+                inline: 'nearest'
+            });
+        }, 100);
+    }
 });
-// 監聽照片輸入框的改變事件 (事件代理)
+
 photoInputsContainer.addEventListener('change', async (e) => {
     if (e.target.classList.contains('photo-input')) {
         const block = e.target.closest('.photo-uploader');
@@ -384,34 +629,49 @@ photoInputsContainer.addEventListener('change', async (e) => {
                 const img = new Image();
                 img.onload = () => {
                     photoData[index].image = img;
-                    // 如果有照片，隱藏警示訊息
                     block.querySelector('.photo-alert').classList.add('hidden');
                 };
                 img.src = e.target.result;
+
+                const previewContainer = block.querySelector('.photo-preview-container');
+                previewContainer.innerHTML = '';
+                const previewImg = document.createElement('img');
+                previewImg.className = 'photo-preview';
+                previewImg.src = e.target.result;
+                previewImg.style.display = 'block';
+                previewContainer.appendChild(previewImg);
             };
             reader.readAsDataURL(file);
-        // 在檔案選擇後，將區塊捲動到螢幕中間
+
             setTimeout(() => {
                 block.scrollIntoView({
                     behavior: 'smooth',
-                    block: 'center', // 捲到螢幕正中間
+                    block: 'center', 
                     inline: 'nearest'
                 });
             }, 100);
-
         }
     }
-    // 監聽文字輸入框的變化，並使其失去焦點
+
     if (e.target.classList.contains('text-input')) {
         e.target.blur();
     }
 });
 
-// 獨立監聽班別輸入框的變化，並使其失去焦點
+photoInputsContainer.addEventListener('click', (e) => {
+    const previewContainer = e.target.closest('.photo-preview-container');
+    if (previewContainer) {
+        const fileInput = previewContainer.parentElement.querySelector('.photo-input');
+        if (fileInput) {
+            fileInput.click();
+        }
+    }
+});
+
 classNameInput.addEventListener('change', (e) => {
     e.target.blur();
 });
-// 監聽刪除按鈕點擊事件 (事件代理)
+
 photoInputsContainer.addEventListener('click', (e) => {
     if (e.target.classList.contains('delete-btn')) {
         const block = e.target.closest('.photo-uploader');
@@ -422,20 +682,159 @@ photoInputsContainer.addEventListener('click', (e) => {
         photoData.splice(index, 1);
         hideAllAlerts();
 
-        document.querySelectorAll('.photo-uploader').forEach((el, i) => {
+        const photoBlocks = document.querySelectorAll('.photo-uploader');
+        photoBlocks.forEach((el, i) => {
             el.dataset.index = i;
             el.querySelector('label:nth-of-type(1)').textContent = `照片 ${i + 1}:`;
-            el.querySelector('label:nth-of-type(2)').textContent = `文字 ${i + 1}:`;
+            el.querySelector('label:nth-of-type(2)').textContent = `文字 ${i + 1}(可下拉選擇)(可空白):`;
+            
+            const fileInput = el.querySelector('.photo-input');
+            fileInput.id = `photo-input-${i}`;
         });
-        checkAddButtonVisibility(); // 刪除後檢查按鈕狀態
+        checkAddButtonVisibility();
     }
 });
 
-// 合併照片的邏輯
+function getClientCoordinates(event) {
+    if (event.touches && event.touches.length > 0) {
+        return {
+            x: event.touches[0].clientX,
+            y: event.touches[0].clientY
+        };
+    }
+    return {
+        x: event.clientX,
+        y: event.clientY
+    };
+}
+
+// 繪製提示文字
+function drawHintText(text) {
+    signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    signatureCtx.fillStyle = '#888';
+    signatureCtx.font = '20px Arial';
+    signatureCtx.textAlign = 'center';
+    signatureCtx.textBaseline = 'middle';
+    signatureCtx.fillText(text, signatureCanvas.width / 2, signatureCanvas.height / 2);
+}
+
+// 啟用/禁用簽名繪製
+function toggleDrawing(enable) {
+    const drawingEvents = {
+        'mousedown': startDrawing,
+        'mouseup': stopDrawing,
+        'mouseout': stopDrawing,
+        'mousemove': draw,
+        'touchstart': (e) => { e.preventDefault(); startDrawing(e); },
+        'touchend': stopDrawing,
+        'touchcancel': stopDrawing,
+        'touchmove': (e) => { e.preventDefault(); draw(e); }
+    };
+
+    if (enable) {
+        for (let event in drawingEvents) {
+            signatureCanvas.addEventListener(event, drawingEvents[event], { passive: false });
+        }
+        signatureCanvas.classList.remove('disabled');
+        signatureCanvas.classList.add('active');
+        if(!signatureDrawn) { // 只有在尚未簽名時才顯示提示文字
+            drawHintText('開始簽名');
+        }
+    } else {
+        for (let event in drawingEvents) {
+            signatureCanvas.removeEventListener(event, drawingEvents[event]);
+        }
+        signatureCanvas.classList.remove('active');
+        signatureCanvas.classList.add('disabled');
+        drawHintText('點擊「啟用簽名」開始');
+    }
+}
+
+function draw(event) {
+    if (!isDrawing) return;
+
+    const rect = signatureCanvas.getBoundingClientRect();
+    const clientCoords = getClientCoordinates(event);
+    const x = (clientCoords.x - rect.left) / rect.width * signatureCanvas.width;
+    const y = (clientCoords.y - rect.top) / rect.height * signatureCanvas.height;
+
+    signatureCtx.beginPath();
+    signatureCtx.moveTo(lastX, lastY);
+    signatureCtx.lineTo(x, y);
+    signatureCtx.stroke();
+    [lastX, lastY] = [x, y];
+    signatureDrawn = true;
+}
+
+function startDrawing(e) {
+    isDrawing = true;
+    const rect = signatureCanvas.getBoundingClientRect();
+    const clientCoords = getClientCoordinates(e);
+    lastX = (clientCoords.x - rect.left) / rect.width * signatureCanvas.width;
+    lastY = (clientCoords.y - rect.top) / rect.height * signatureCanvas.height;
+    
+    // 只有當畫布上沒有內容時才清除提示文字
+    if (!signatureDrawn) {
+        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    }
+    
+    signatureCtx.beginPath(); 
+    signatureCtx.moveTo(lastX, lastY); 
+}
+
+function stopDrawing() {
+    isDrawing = false;
+}
+
+function clearSignature() {
+    signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    signatureDrawn = false;
+    toggleDrawing(false); 
+}
+
+function initSignatureCanvas() {
+    const rect = signatureCanvas.getBoundingClientRect();
+    signatureCanvas.width = rect.width;
+    signatureCanvas.height = rect.height;
+    
+    signatureCtx.lineWidth = 3;
+    signatureCtx.lineCap = 'round';
+    signatureCtx.strokeStyle = 'black';
+    signatureCtx.imageSmoothingEnabled = true;
+
+    toggleDrawing(false); 
+    
+    enableSignatureBtn.addEventListener('click', () => {
+        toggleDrawing(true);
+    });
+    clearSignatureBtn.addEventListener('click', clearSignature);
+}
+
+document.addEventListener('DOMContentLoaded', initSignatureCanvas);
+
+function openModal() {
+    infoModal.classList.add('visible');
+    document.body.classList.add('no-scroll');
+}
+
+function closeModal() {
+    infoModal.classList.remove('visible');
+    document.body.classList.remove('no-scroll');
+}
+
+// 綁定事件監聽器
+infoBtn.addEventListener('click', openModal);
+closeButton.addEventListener('click', closeModal);
+infoModal.addEventListener('click', (e) => {
+    if (e.target.id === 'infoModal') {
+        closeModal();
+    }
+});
+
 combineBtn.addEventListener('click', async () => {
     let hasError = false;
-    // 先隱藏所有提示訊息，避免累積
     hideAllAlerts();
+    let firstErrorBlock = null;
 
     document.querySelectorAll('.photo-uploader').forEach((block, i) => {
         const textInput = block.querySelector('.text-input');
@@ -445,6 +844,9 @@ combineBtn.addEventListener('click', async () => {
             photoAlert.textContent = '請上傳照片！';
             photoAlert.classList.remove('hidden');
             hasError = true;
+            if (!firstErrorBlock) {
+                firstErrorBlock = block;
+            }
         } else {
             photoAlert.classList.add('hidden');
         }
@@ -455,7 +857,9 @@ combineBtn.addEventListener('click', async () => {
     });
 
     if (hasError) {
-        // 如果有錯誤，直接結束，不生成圖片
+        if (firstErrorBlock) {
+            firstErrorBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
         return;
     }
     
@@ -476,30 +880,32 @@ combineBtn.addEventListener('click', async () => {
         cols = Math.ceil(numPhotos / 2);
     }
 
-    const cellWidth = canvas.width / cols;
-    const cellHeight = canvas.height / rows;
+    // 將繪圖區域限制在畫布的上部 85%
+    const drawAreaHeight = canvas.height * 0.85; 
+    const photoCellWidth = canvas.width / cols;
+    const photoCellHeight = drawAreaHeight / rows;
 
     selectedPhotos.forEach((data, i) => {
         const row = Math.floor(i / cols);
         const col = i % cols;
-        const x = col * cellWidth;
-        const y = row * cellHeight;
+        const x = col * photoCellWidth;
+        const y = row * photoCellHeight;
         
         const image = data.image;
         const imageRatio = image.width / image.height;
-        const cellRatio = cellWidth / cellHeight;
+        const cellRatio = photoCellWidth / photoCellHeight;
         
         let drawX, drawY, drawWidth, drawHeight;
 
         if (imageRatio > cellRatio) {
-            drawWidth = cellWidth;
-            drawHeight = cellWidth / imageRatio;
+            drawWidth = photoCellWidth;
+            drawHeight = photoCellWidth / imageRatio;
             drawX = x;
-            drawY = y + (cellHeight - drawHeight) / 2;
+            drawY = y + (photoCellHeight - drawHeight) / 2;
         } else {
-            drawHeight = cellHeight;
-            drawWidth = cellHeight * imageRatio;
-            drawX = x + (cellWidth - drawWidth) / 2;
+            drawHeight = photoCellHeight;
+            drawWidth = photoCellHeight * imageRatio;
+            drawX = x + (photoCellWidth - drawWidth) / 2;
             drawY = y;
         }
         
@@ -515,7 +921,7 @@ combineBtn.addEventListener('click', async () => {
         ctx.shadowOffsetY = 3;
         ctx.shadowBlur = 5;
 
-        ctx.fillText(text, x + cellWidth / 2, y + 80);
+        ctx.fillText(text, x + photoCellWidth / 2, y + 80);
         
         ctx.shadowColor = 'transparent';
         ctx.shadowOffsetX = 0;
@@ -534,6 +940,10 @@ combineBtn.addEventListener('click', async () => {
     const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
     const className = classNameInput.value || '未輸入班別';
 
+    // 繪製到畫布下方區域
+    const textYOffset = canvas.height * 0.95;
+    const padding = 50;
+
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 35px Arial';
     ctx.textAlign = 'right';
@@ -543,14 +953,39 @@ combineBtn.addEventListener('click', async () => {
     ctx.shadowOffsetY = 2;
     ctx.shadowBlur = 4;
     
-    ctx.fillText(dateTimeString, canvas.width - 50, canvas.height - 60);
-    ctx.fillText(`${className}`, canvas.width - 50, canvas.height - 20);
+    ctx.fillText(dateTimeString, canvas.width - padding, textYOffset - 50);
+    ctx.fillText(`${className}`, canvas.width - padding, textYOffset);
+    
+    if (signatureDrawn) {
+        // 創建一個臨時畫布來處理簽名顏色
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = signatureCanvas.width;
+        tempCanvas.height = signatureCanvas.height;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        // 複製簽名到臨時畫布
+        tempCtx.drawImage(signatureCanvas, 0, 0);
+
+        // 將臨時畫布上的簽名顏色變為藍色
+        tempCtx.globalCompositeOperation = 'source-atop';
+        tempCtx.fillStyle = '#0000FF';
+        tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+        tempCtx.globalCompositeOperation = 'source-over';
+        
+        const signatureRatio = tempCanvas.width / tempCanvas.height;
+        const targetSignatureWidth = canvas.width * 0.20; // 縮小為 20%
+        const targetSignatureHeight = targetSignatureWidth / signatureRatio;
+
+        const signatureX = padding;
+        const signatureY = canvas.height * 0.85 + (canvas.height * 0.15 - targetSignatureHeight)/2;
+        
+        ctx.drawImage(tempCanvas, signatureX, signatureY, targetSignatureWidth, targetSignatureHeight);
+    }
     
     const imageURL = canvas.toDataURL('image/jpeg', 0.9);
     finalImage.src = imageURL;
     finalImage.style.display = 'block';
 
-    // 合成完成後，自動捲動到預覽照片
     setTimeout(() => {
         finalImage.scrollIntoView({
             behavior: 'smooth',
