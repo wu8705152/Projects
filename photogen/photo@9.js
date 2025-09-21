@@ -180,6 +180,7 @@ addPhotoBlock.addEventListener('click', () => {
 
 // 取得警告橫幅元素
 const warningBanner = document.getElementById('warningBanner');
+const closeWarningBtn = document.querySelector('.warning-banner .close-btn');
 
 // 新增一個獨立的函數來控制橫幅顯示
 function updateWarningBanner() {
@@ -190,6 +191,9 @@ function updateWarningBanner() {
         warningBanner.style.display = 'none';
     }
 }
+closeWarningBtn.addEventListener('click', () => {
+    warningBanner.style.display = 'none';
+});
 
 photoInputsContainer.addEventListener('change', async (e) => {
     if (e.target.classList.contains('photo-input')) {
