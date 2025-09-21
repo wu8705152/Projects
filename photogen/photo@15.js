@@ -61,7 +61,6 @@ function createPhotoInputBlock(index) {
     }
 
     const photoLabel = document.createElement('label');
-    photoLabel.textContent = `照片 ${index + 1}:`;
 
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -146,14 +145,14 @@ addPhotoBlock.addEventListener('click', () => {
         return;
     }
     
+    // 如果前一個區塊沒有照片，則給予提示，不新增
     const lastPhotoData = photoData[photoData.length - 1];
-    if (!lastPhotoData.image) {
+    if (!lastPhotoData.image && photoData.length > 0) { // 確保不是第一個區塊
         const lastBlock = document.querySelector(`.photo-uploader[data-index="${photoData.length - 1}"]`);
         if (lastBlock) {
             const alertElement = lastBlock.querySelector('.photo-alert');
             alertElement.textContent = '請先上傳照片！';
             alertElement.classList.remove('hidden');
-            // 新增滾動功能
             setTimeout(() => {
                 lastBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 100);
@@ -169,11 +168,11 @@ addPhotoBlock.addEventListener('click', () => {
     const newBlock = document.querySelector(`.photo-uploader[data-index="${newIndex}"]`);
     if (newBlock) {
         setTimeout(() => {
-            newBlock.scrollIntoView({
-                behavior: 'smooth',
-                block: 'center', 
-                inline: 'nearest'
-            });
+            // 自動點擊新的檔案選擇輸入框
+            const newFileInput = newBlock.querySelector('.photo-input');
+            if (newFileInput) {
+                newFileInput.click();
+            }
         }, 100);
     }
 });
@@ -197,27 +196,35 @@ photoInputsContainer.addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (file) {
             const reader = new FileReader();
+            
             reader.onload = (e) => {
                 const img = new Image();
                 img.onload = () => {
                     photoData[index].image = img;
-                    // 只在上傳第一張照片時顯示橫幅
+                    block.querySelector('.photo-alert').classList.add('hidden');
+                    
                     if (!bannerHasBeenShown) {
                         warningBanner.style.display = 'block';
                         bannerHasBeenShown = true;
                     }
-                    block.querySelector('.photo-alert').classList.add('hidden');
+
+                    const previewContainer = block.querySelector('.photo-preview-container');
+                    previewContainer.innerHTML = ''; // 清空原有內容
+
+                    const previewImg = document.createElement('img');
+                    previewImg.className = 'photo-preview-image'; // 使用新的 class 名稱
+                    previewImg.src = e.target.result;
+                    previewContainer.appendChild(previewImg);
+
+                    // 新增 RETAKE 提示層
+                    const retakeOverlay = document.createElement('div');
+                    retakeOverlay.className = 'photo-retake-overlay';
+                    retakeOverlay.innerHTML = '<span class="camera-icon">📸</span> RETAKE';
+                    previewContainer.appendChild(retakeOverlay);
                 };
                 img.src = e.target.result;
-
-                const previewContainer = block.querySelector('.photo-preview-container');
-                previewContainer.innerHTML = '';
-                const previewImg = document.createElement('img');
-                previewImg.className = 'photo-preview';
-                previewImg.src = e.target.result;
-                previewImg.style.display = 'block';
-                previewContainer.appendChild(previewImg);
             };
+            
             reader.readAsDataURL(file);
 
             setTimeout(() => {
@@ -262,7 +269,6 @@ photoInputsContainer.addEventListener('click', (e) => {
         const photoBlocks = document.querySelectorAll('.photo-uploader');
         photoBlocks.forEach((el, i) => {
             el.dataset.index = i;
-            el.querySelector('label:nth-of-type(1)').textContent = `照片 ${i + 1}:`;
             el.querySelector('label:nth-of-type(2)').textContent = `區域 ${i + 1}(可空白):`;
             
             const fileInput = el.querySelector('.photo-input');
