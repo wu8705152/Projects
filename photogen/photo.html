@@ -27,13 +27,18 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    background-color: #ff4d4d; /* 醒目的紅色 */
+    /* 使用較柔和的背景色，如淺橘色或中性灰色 */
+    background-color: #ff9800;
+    /* 文字顏色 */
     color: white;
     text-align: center;
-    padding: 10px 0;
+    /* 增加垂直內邊距 */
+    padding: 8px 0;
+    font-size: 16px;
     font-weight: bold;
     z-index: 1000;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    /* 移除強烈的陰影，使用更細的邊框 */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     display: none; /* 預設隱藏 */
 }
 
@@ -447,7 +452,7 @@ footer{
 </head>
 <body>
 <div class="warning-banner" id="warningBanner">
-    <span>⚠️</span>照片暫存在瀏覽器中，若重新整理或關閉網頁，照片就會消失，請多加留意！
+    照片尚未儲存，離開頁面將會遺失。
 </div>
     <div class="container">
         <h1>排面照產生器<span id="infoBtn" class="info-icon">!</span></h1>
@@ -509,6 +514,6 @@ footer{
     <p><strong>免責聲明：</strong>本網頁僅作為圖片處理工具，供個人使用，不提供檔案儲存或備份服務。使用者須自行確保所上傳內容之合法性與正確性。本網頁及開發者對於因使用本網頁所產生或引發之任何後果，概不負責。</p>
 </footer>
 </div>
-<script src="photo@8.js"></script>
+<script src="photo@5.js"></script>
 </body>
 </html>
