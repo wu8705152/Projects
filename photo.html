@@ -41,16 +41,12 @@ h1 {
 #photoInputsContainer {
     margin-bottom: 20px;
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; /* 內容超出時自動換行 */
     justify-content: center;
     gap: 20px;
-    /* 移除高度與捲軸設定，讓頁面整體捲動 */
-    /* max-height: 60vh; */
-    /* overflow-y: auto; */
     padding-right: 15px; 
 }
 
-/* 統一照片區塊與新增按鈕的樣式基礎 */
 .photo-uploader, #addPhotoBlock {
     position: relative;
     display: flex;
@@ -61,13 +57,13 @@ h1 {
     border: 1px dashed #aaa; 
     border-radius: 5px;
     background-color: #f9f9f9;
+    width: 45%; /* 設定固定的寬度，使其在兩欄排版時穩定 */
 }
 
-/* 新增按鈕的專屬樣式 */
 #addPhotoBlock {
     cursor: pointer;
-    justify-content: center; /* 垂直居中 */
-    align-items: center; /* 水平居中 */
+    justify-content: center; 
+    align-items: center; 
     font-size: 50px;
     color: #ccc;
     user-select: none; 
@@ -159,9 +155,31 @@ button {
     margin-top: 5px;
 }
 .hidden {
-    display: none;
+    display: none !important;
 }
 
+footer {
+    margin-top: 20px;
+    font-size: 12px;
+    color: #777;
+    text-align: center;
+}
+
+/* 響應式設計：小於 500px 寬度螢幕 */
+@media (max-width: 500px) {
+    .container {
+        padding: 20px 15px;
+        width: 95%;
+    }
+    .photo-uploader, #addPhotoBlock {
+        width: 100%; /* 小螢幕下，單欄顯示 */
+        max-width: 350px; 
+    }
+    .action-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
 footer {
     margin-top: 20px;
     font-size: 12px;
@@ -228,7 +246,7 @@ footer{
 <script>
 const classNameInput = document.getElementById('className');
 const photoInputsContainer = document.getElementById('photoInputsContainer');
-const addPhotoBtn = document.getElementById('addPhotoBtn');
+const addPhotoBlock = document.getElementById('addPhotoBlock');
 const combineBtn = document.getElementById('combineBtn');
 const canvas = document.getElementById('photoCanvas');
 const ctx = canvas.getContext('2d');
@@ -281,11 +299,20 @@ function createDatalist() {
     document.body.appendChild(datalist);
 }
 
+function checkAddButtonVisibility() {
+    if (photoData.length >= MAX_PHOTOS) {
+        addPhotoBlock.classList.add('hidden');
+    } else {
+        addPhotoBlock.classList.remove('hidden');
+    }
+}
+
 createDatalist();
 
 // 初始載入第一個照片輸入區塊
 createPhotoInputBlock(0);
 photoData.push({});
+checkAddButtonVisibility(); // 首次載入時檢查按鈕狀態
 
 // 隱藏所有提示訊息
 function hideAllAlerts() {
@@ -321,6 +348,7 @@ addPhotoBlock.addEventListener('click', () => {
     const newIndex = photoData.length;
     createPhotoInputBlock(newIndex);
     photoData.push({});
+    checkAddButtonVisibility(); // 檢查按鈕狀態
 
     // 新增完馬上捲到新欄位
         const newBlock = document.querySelector(`.photo-uploader[data-index="${newIndex}"]`);
@@ -390,6 +418,7 @@ photoInputsContainer.addEventListener('click', (e) => {
             el.querySelector('label:nth-of-type(1)').textContent = `照片 ${i + 1}:`;
             el.querySelector('label:nth-of-type(2)').textContent = `文字 ${i + 1}:`;
         });
+        checkAddButtonVisibility(); // 刪除後檢查按鈕狀態
     }
 });
 
