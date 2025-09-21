@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>排面照產生器V3</title>
+    <title>排面照產生器</title>
     <style>
 body {
   user-select: none; /* 禁用整個網頁的文字選取功能 */
@@ -20,6 +20,21 @@ body {
   min-height: 100vh;
   margin: 0;
   padding: 20px;
+}
+
+.warning-banner {
+    position: sticky;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ff4d4d; /* 醒目的紅色 */
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    font-weight: bold;
+    z-index: 1000;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    display: none; /* 預設隱藏 */
 }
 
 /* 新增的 CSS: 在彈出視窗開啟時，鎖定背景滾動 */
@@ -422,10 +437,18 @@ footer{
 .close-button:hover {
     color: #333;
 }
-    </style>
+.photo-tip {
+    color: #888;
+    font-size: 14px;
+    margin-top: 5px;
+    text-align: center;
+}
+</style>
 </head>
 <body>
-
+<div class="warning-banner" id="warningBanner">
+    <span>⚠️</span> 請注意：照片儲存於瀏覽器暫存中，請勿關閉或重新整理網頁，以免照片遺失！
+</div>
     <div class="container">
         <h1>排面照產生器<span id="infoBtn" class="info-icon">!</span></h1>
 
@@ -442,6 +465,7 @@ footer{
         <div id="photoInputsContainer">
             <div id="addPhotoBlock">
                 <span>+</span>
+                <p class="photo-tip">照片儲存於瀏覽器暫存中，請勿關閉網頁</p>
             </div>
         </div>
 
@@ -485,6 +509,6 @@ footer{
     <p><strong>免責聲明：</strong>本網頁僅作為圖片處理工具，供個人使用，不提供檔案儲存或備份服務。使用者須自行確保所上傳內容之合法性與正確性。本網頁及開發者對於因使用本網頁所產生或引發之任何後果，概不負責。</p>
 </footer>
 </div>
-<script src="photo@7.js"></script>
+<script src="photo@8.js"></script>
 </body>
 </html>
