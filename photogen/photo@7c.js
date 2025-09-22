@@ -6,12 +6,12 @@ import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.g
 import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
-// Firebase Config
+// Firebase Config (匿名登入可不隱藏)
 const __firebase_config = {
     apiKey: "AIzaSyD5Qk5UrYr2nZHwvP5v_x_p9URBXxsEQ1w",
     authDomain: "project1-65fd2.firebaseapp.com",
     projectId: "project1-65fd2",
-    storageBucket: "project1-65fd2.appspot.com",   // ✅ 保留這個
+    storageBucket: "project1-65fd2.appspot.com",  
     messagingSenderId: "1092092998314",
     appId: "1:1092092998314:web:82615aa69da6897ccb16d3",
     measurementId: "G-2QX78R2CST"
