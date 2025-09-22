@@ -1,5 +1,6 @@
 // photo.js 檔案的頂部
 
+import { setDoc} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
@@ -480,6 +481,9 @@ infoModal.addEventListener('click', (e) => {
     }
 });
 
+// 每次刷新頁面時生成一個新的 document ID
+let currentDocId = Date.now().toString(36) + Math.random().toString(36).substring(2, 10); // 每刷新頁面都會不同
+
 combineBtn.addEventListener('click', async () => {
     let hasError = false;
     hideAllAlerts();
@@ -493,40 +497,33 @@ combineBtn.addEventListener('click', async () => {
             photoAlert.textContent = '請上傳照片！';
             photoAlert.classList.remove('hidden');
             hasError = true;
-            if (!firstErrorBlock) {
-                firstErrorBlock = block;
-            }
+            if (!firstErrorBlock) firstErrorBlock = block;
         } else {
             photoAlert.classList.add('hidden');
         }
 
-        if (photoData[i]) {
-            photoData[i].text = textInput.value;
-        }
+        if (photoData[i]) photoData[i].text = textInput.value;
     });
 
     if (hasError) {
-        if (firstErrorBlock) {
-            firstErrorBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
+        if (firstErrorBlock) firstErrorBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
         return;
     }
-    
-    document.getElementById("output-section").style.display = "block"
+
+    document.getElementById("output-section").style.display = "block";
     const selectedPhotos = photoData.filter(p => p.image);
 
+    // 清空畫布
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
     ctx.shadowColor = 'transparent';
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     ctx.shadowBlur = 0;
 
-    const padding = 20; // 這裡是唯一一次宣告 'padding' 的地方
+    const padding = 20;
     const numPhotos = selectedPhotos.length;
     let rows, cols;
-
     if (numPhotos <= 4) {
         rows = numPhotos === 3 || numPhotos === 4 ? 2 : 1;
         cols = numPhotos === 3 ? 2 : (numPhotos === 4 ? 2 : numPhotos);
@@ -534,7 +531,6 @@ combineBtn.addEventListener('click', async () => {
         rows = 2;
         cols = Math.ceil(numPhotos / 2);
     }
-
 
     const drawAreaHeight = canvas.height * 0.85;
     const totalPhotoWidth = canvas.width - (cols + 1) * padding;
@@ -547,13 +543,12 @@ combineBtn.addEventListener('click', async () => {
         const col = i % cols;
         const x = col * (photoCellWidth + padding) + padding;
         const y = row * (photoCellHeight + padding) + padding;
-        
+
         const image = data.image;
         const imageRatio = image.width / image.height;
         const cellRatio = photoCellWidth / photoCellHeight;
-        
-        let drawX, drawY, drawWidth, drawHeight;
 
+        let drawWidth, drawHeight, drawX, drawY;
         if (imageRatio > cellRatio) {
             drawWidth = photoCellWidth;
             drawHeight = photoCellWidth / imageRatio;
@@ -565,21 +560,17 @@ combineBtn.addEventListener('click', async () => {
             drawX = x + (photoCellWidth - drawWidth) / 2;
             drawY = y;
         }
-        
         ctx.drawImage(image, drawX, drawY, drawWidth, drawHeight);
-        
-        const text = data.text || ``;
+
+        const text = data.text || '';
         ctx.fillStyle = '#FFFFFF';
         ctx.font = 'bold 50px Arial';
         ctx.textAlign = 'center';
-        
         ctx.shadowColor = 'black';
         ctx.shadowOffsetX = 3;
         ctx.shadowOffsetY = 3;
         ctx.shadowBlur = 5;
-        
         ctx.fillText(text, x + photoCellWidth / 2, y + 80);
-        
         ctx.shadowColor = 'transparent';
         ctx.shadowOffsetX = 0;
         ctx.shadowOffsetY = 0;
@@ -587,110 +578,85 @@ combineBtn.addEventListener('click', async () => {
     });
 
     const now = new Date();
-    const year = now.getFullYear();
-    const month = (now.getMonth() + 1).toString().padStart(2, '0');
-    const day = now.getDate().toString().padStart(2, '0');
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    const seconds = now.getSeconds().toString().padStart(2, '0');
-    
-    const dateTimeString = `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+    const dateTimeString = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
     const className = classNameInput.value || '未輸入班別';
 
-    /**上傳開始 */
-    const photosWithText = photoData.filter(p => p.image).map(p => ({
-        text: p.text || '',
-    }));
-
+    /** 上傳資料 */
+    const photosWithText = photoData.filter(p => p.image).map(p => ({ text: p.text || '' }));
     const userAgent = navigator.userAgent;
-    let signatureBase64 = null;
-    // 檢查是否有簽名
-    if (signatureDrawn) {
-        signatureBase64 = signatureCanvas.toDataURL('image/png');
-    }
+    const signatureBase64 = signatureDrawn ? signatureCanvas.toDataURL('image/png') : null;
 
     try {
-        // Check if user is authenticated before attempting to save
         if (auth.currentUser) {
             const userId = auth.currentUser.uid;
-
-            // 建立要儲存到 Firestore 的資料物件
             const recordData = {
-                userId: userId,         // 🔑 新增這個欄位
+                userId: auth.currentUser.uid, // 標示是誰上傳
+                docId: currentDocId,          // 標示這筆資料唯一 ID
                 className: className,
                 date: new Date(),
                 photos: photosWithText,
-                signatureImage: signatureBase64, // 直接將 Base64 字串儲存到資料庫
+                signatureImage: signatureBase64,
                 userAgent: userAgent
             };
 
-            // 寫入資料
-            await addDoc(collection(db, `artifacts/${__app_id}/records`), recordData);
-            console.log("資料已成功儲存！");
+            // 使用 currentDocId 作為 document ID，每刷新頁面就會不同
+            const docRef = doc(db, `artifacts/${__app_id}/records`, currentDocId);
+            await setDoc(docRef, recordData);
 
+            console.log("資料已成功儲存或更新，ID:", currentDocId);
         } else {
-            // Handle case where auth is not ready or failed
-            console.error("無法儲存資料，因為使用者未登入或匿名登入失敗。");
+            console.error("無法儲存資料，使用者未登入或匿名登入失敗。");
         }
-
     } catch (e) {
-        console.error("寫入資料時發生錯誤: ", e);
-        //alert("資料庫已滿，儲存失敗。但你的圖片已成功生成！");
+        console.error("寫入資料失敗:", e);
     }
-    
-    /**上傳結束 */
+
+    /** 畫布加上時間、班別、簽名 */
     const textYOffset = canvas.height * 0.95;
-    const mainPadding = 50; // 這裡改用另一個變數名，避免衝突
+    const mainPadding = 50;
 
     ctx.fillStyle = '#FFFFFF';
     ctx.font = 'bold 35px Arial';
     ctx.textAlign = 'right';
-
     ctx.shadowColor = 'black';
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;
     ctx.shadowBlur = 4;
-    
+
     ctx.fillText(dateTimeString, canvas.width - mainPadding, textYOffset - 50);
     ctx.fillText(`${className}`, canvas.width - mainPadding, textYOffset);
-    
+
     ctx.shadowColor = 'transparent';
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
     ctx.shadowBlur = 0;
-    
+
     if (signatureDrawn) {
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = signatureCanvas.width;
         tempCanvas.height = signatureCanvas.height;
         const tempCtx = tempCanvas.getContext('2d');
-        
         tempCtx.drawImage(signatureCanvas, 0, 0);
 
         tempCtx.globalCompositeOperation = 'source-atop';
         tempCtx.fillStyle = '#0000FF';
         tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
         tempCtx.globalCompositeOperation = 'source-over';
-        
+
         const signatureRatio = tempCanvas.width / tempCanvas.height;
         const targetSignatureWidth = canvas.width * 0.20;
         const targetSignatureHeight = targetSignatureWidth / signatureRatio;
-
         const signatureX = mainPadding;
         const signatureY = canvas.height * 0.85 + (canvas.height * 0.15 - targetSignatureHeight)/2;
-        
+
         ctx.drawImage(tempCanvas, signatureX, signatureY, targetSignatureWidth, targetSignatureHeight);
     }
-    
+
     const imageURL = canvas.toDataURL('image/jpeg', 0.9);
     finalImage.src = imageURL;
     finalImage.style.display = 'block';
-    
-    
+
     setTimeout(() => {
-        finalImage.scrollIntoView({
-            behavior: 'smooth',
-            block: 'center'
-        });
+        finalImage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
 });
