@@ -1,38 +1,36 @@
 // photo.js 檔案的頂部
 
-import { setDoc} from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import { setDoc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
 import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
-// 將 Firebase 設定直接定義在程式碼內 //匿名使用不須隱藏
-const __firebase_config = `{
-    "apiKey": "AIzaSyD5Qk5UrYr2nZHwvP5v_x_p9URBXxsEQ1w",
-    "authDomain": "project1-65fd2.firebaseapp.com",
-    "projectId": "project1-65fd2",
-    "storageBucket": "project1-65fd2.firebasestorage.app",
-    "messagingSenderId": "1092092998314",
-    "appId": "1:1092092998314:web:82615aa69da6897ccb16d3",
-    "measurementId": "G-2QX78R2CST"
-}`;
+// Firebase Config
+const __firebase_config = {
+    apiKey: "AIzaSyD5Qk5UrYr2nZHwvP5v_x_p9URBXxsEQ1w",
+    authDomain: "project1-65fd2.firebaseapp.com",
+    projectId: "project1-65fd2",
+    storageBucket: "project1-65fd2.appspot.com",   // ✅ 保留這個
+    messagingSenderId: "1092092998314",
+    appId: "1:1092092998314:web:82615aa69da6897ccb16d3",
+    measurementId: "G-2QX78R2CST"
+};
 
 const __app_id = "1:1092092998314:web:82615aa69da6897ccb16d3";
 
-let db, auth;
+let db, auth, storage;   // ✅ 加入 storage
 let __initial_auth_token;
+let userLocation = null;  
 
 window.onload = function() {
-    //__app_id = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-   // __initial_auth_token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : '';
-    const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+    const firebaseConfig = __firebase_config;
 
-    // 檢查 firebaseConfig 是否有值，這代表 Canvas 是否成功提供了設定。
-    // 如果沒有設定，代表我們處於離線或非 Firebase 環境，應用程式仍可執行，
-    // 但不會連線到資料庫。
     if (Object.keys(firebaseConfig).length > 0) {
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
+        storage = getStorage(app);   // ✅ 初始化 Storage
 
         if (__initial_auth_token) {
             signInWithCustomToken(auth, __initial_auth_token).then(() => {
@@ -54,6 +52,24 @@ window.onload = function() {
         }
     } else {
         console.error("Firebase 配置缺失，請確認 Canvas 變數是否正確提供。");
+    }
+
+    //取得位置
+    if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+        (position) => {
+            userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+            };
+            console.log("已取得位置:", userLocation);
+        },
+        (error) => {
+            console.error("無法取得定位資訊:", error.message);
+        }
+        );
+    } else {
+        console.error("此瀏覽器不支援定位功能");
     }
 }
 window.addEventListener('beforeunload', (event) => {
@@ -590,13 +606,14 @@ combineBtn.addEventListener('click', async () => {
         if (auth.currentUser) {
             const userId = auth.currentUser.uid;
             const recordData = {
-                userId: auth.currentUser.uid, // 標示是誰上傳
-                docId: currentDocId,          // 標示這筆資料唯一 ID
+                userId: userId,           // 標示是誰上傳
+                docId: currentDocId,      // 標示這筆資料唯一 ID
                 className: className,
                 date: new Date(),
                 photos: photosWithText,
                 signatureImage: signatureBase64,
-                userAgent: userAgent
+                userAgent: userAgent,
+                location: userLocation 
             };
 
             // 使用 currentDocId 作為 document ID，每刷新頁面就會不同
@@ -655,7 +672,35 @@ combineBtn.addEventListener('click', async () => {
     const imageURL = canvas.toDataURL('image/jpeg', 0.9);
     finalImage.src = imageURL;
     finalImage.style.display = 'block';
+/*圖片上傳storage
+   try {
+        if (auth.currentUser) {
+            // 建立檔案路徑（以 currentDocId 當檔名）
+            const storageRef = ref(storage, `finalImages/${currentDocId}.jpg`);
 
+            // 把 DataURL 轉成 Blob
+            const response = await fetch(imageURL);
+            const blob = await response.blob();
+
+            // 上傳到 Firebase Storage
+            await uploadBytes(storageRef, blob);
+            console.log("✅ 合成圖片已上傳");
+
+            // 取得公開的下載連結
+            const downloadURL = await getDownloadURL(storageRef);
+            console.log("🌐 下載連結:", downloadURL);
+
+            // 可選：把連結存到 Firestore
+            const docRef = doc(db, `artifacts/${__app_id}/records`, currentDocId);
+            await setDoc(docRef, { finalImageURL: downloadURL }, { merge: true });
+            console.log("📂 Firestore 已更新合成圖片連結");
+        } else {
+            console.warn("尚未登入 Firebase，無法上傳圖片");
+        }
+    } catch (error) {
+        console.error("❌ 上傳合成圖片失敗:", error);
+    }
+*/
     setTimeout(() => {
         finalImage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
