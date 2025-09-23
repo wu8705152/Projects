@@ -288,13 +288,13 @@ async function processFile(file, index, block) {
 addPhotoBlock.addEventListener('click', () => {
     hideAllAlerts();
 
+    // 檢查總數是否已達上限
     if (photoData.length >= MAX_PHOTOS) {
         const lastBlock = document.querySelector(`.photo-uploader[data-index="${photoData.length - 1}"]`);
         if (lastBlock) {
             const alertElement = lastBlock.querySelector('.photo-alert');
-            alertElement.textContent = '最多只能新增 8 張照片！';
+            alertElement.textContent = `最多只能新增 ${MAX_PHOTOS} 張照片！`;
             alertElement.classList.remove('hidden');
-            
             setTimeout(() => {
                 lastBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 100);
@@ -316,6 +316,7 @@ addPhotoBlock.addEventListener('click', () => {
         return;
     }
 
+    // 透過隱藏的 input 觸發檔案選擇，用於新增
     const tempInput = document.createElement('input');
     tempInput.type = 'file';
     tempInput.accept = 'image/*';
@@ -330,41 +331,45 @@ addPhotoBlock.addEventListener('click', () => {
 
     tempInput.addEventListener('change', async (e) => {
         const files = e.target.files;
-        if (files.length > 0) {
-            const newIndex = photoData.length;
-            const remainingSlots = MAX_PHOTOS - newIndex;
-            
-            if (files.length > remainingSlots) {
-                let alertElement = document.getElementById('addPhotoBlock').querySelector('.photo-alert');
-                if (!alertElement) {
-                    alertElement = document.createElement('span');
-                    alertElement.className = 'photo-alert hidden';
-                    document.getElementById('addPhotoBlock').appendChild(alertElement);
-                }
-                
-                alertElement.textContent = `您已上傳 ${newIndex} 張照片，只能再新增 ${remainingSlots} 張。`;
-                alertElement.classList.remove('hidden');
-                
-                document.body.removeChild(tempInput);
-                return;
-            }
+        if (files.length === 0) {
+            document.body.removeChild(tempInput);
+            return;
+        }
 
-            for (let i = 0; i < files.length; i++) {
-                const currentNewIndex = photoData.length;
-                const newBlock = createPhotoInputBlock(currentNewIndex);
-                photoData.push({});
-                await processFile(files[i], currentNewIndex, newBlock);
+        const newIndex = photoData.length;
+        const remainingSlots = MAX_PHOTOS - newIndex;
+        
+        // 只在新增時檢查是否超過總數上限
+        if (files.length > remainingSlots) {
+            let alertElement = document.getElementById('addPhotoBlock').querySelector('.photo-alert');
+            if (!alertElement) {
+                alertElement = document.createElement('span');
+                alertElement.className = 'photo-alert hidden';
+                document.getElementById('addPhotoBlock').appendChild(alertElement);
             }
+            
+            alertElement.textContent = `您已上傳 ${newIndex} 張照片，一次最多只能再新增 ${remainingSlots} 張。`;
+            alertElement.classList.remove('hidden');
+            
+            document.body.removeChild(tempInput);
+            return;
+        }
+
+        for (let i = 0; i < files.length; i++) {
+            const currentNewIndex = photoData.length;
+            const newBlock = createPhotoInputBlock(currentNewIndex);
+            photoData.push({});
+            await processFile(files[i], currentNewIndex, newBlock);
         }
         
         document.body.removeChild(tempInput);
         checkAddButtonVisibility();
-        // ✅ 新增照片後更新按鈕狀態
         updateCombineButtonState();
     });
 
     tempInput.click();
 });
+
 
 
 const warningBanner = document.getElementById('warningBanner');
@@ -380,31 +385,37 @@ photoInputsContainer.addEventListener('change', async (e) => {
     if (e.target.classList.contains('photo-input')) {
         const block = e.target.closest('.photo-uploader');
         const files = e.target.files;
+        const index = parseInt(block.dataset.index);
 
         if (files.length === 0) {
             return;
         }
-        
-        const currentPhotoCount = photoData.length;
-        const newFileCount = files.length;
-        const remainingSlots = MAX_PHOTOS - currentPhotoCount;
 
-        if (newFileCount > remainingSlots) {
-            const alertElement = block.querySelector('.photo-alert');
-            alertElement.textContent = `您已上傳 ${currentPhotoCount} 張照片，一次最多只能再新增 ${remainingSlots} 張。`;
-            alertElement.classList.remove('hidden');
-            
-            e.target.value = '';
-            
-            setTimeout(() => {
-                block.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }, 100);
-            return;
+        // 檢查是否為新增照片（不是替換），且上傳了多張檔案
+        // 替換（RETAKE）時，files.length 一定是 1，且該區塊已有照片
+        // 只有在一次上傳多張檔案時，才進行數量檢查
+        if (files.length > 1) {
+            const currentPhotoCount = photoData.length;
+            const remainingSlots = MAX_PHOTOS - currentPhotoCount;
+
+            if (files.length > remainingSlots) {
+                const alertElement = block.querySelector('.photo-alert');
+                alertElement.textContent = `您已上傳 ${currentPhotoCount} 張照片，一次最多只能再新增 ${remainingSlots} 張。`;
+                alertElement.classList.remove('hidden');
+                
+                e.target.value = '';
+                
+                setTimeout(() => {
+                    block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 100);
+                return;
+            }
         }
 
-        let index = parseInt(block.dataset.index);
+        // 處理當前上傳的檔案
         await processFile(files[0], index, block);
 
+        // 如果有多張照片，新增新區塊並處理剩餘的檔案
         if (files.length > 1) {
             for (let i = 1; i < files.length; i++) {
                 const currentNewIndex = photoData.length;
@@ -415,7 +426,6 @@ photoInputsContainer.addEventListener('change', async (e) => {
         }
         
         checkAddButtonVisibility();
-        // ✅ 改變照片後更新按鈕狀態
         updateCombineButtonState();
 
         if (!bannerHasBeenShown) {
@@ -425,21 +435,13 @@ photoInputsContainer.addEventListener('change', async (e) => {
     }
 });
 
-photoInputsContainer.addEventListener('click', (e) => {
-    const previewContainer = e.target.closest('.photo-preview-container');
-    if (previewContainer) {
-        const fileInput = previewContainer.parentElement.querySelector('.photo-input');
-        if (fileInput) {
-            fileInput.click();
-        }
-    }
-});
 
 classNameInput.addEventListener('change', (e) => {
     e.target.blur();
 });
 
 photoInputsContainer.addEventListener('click', (e) => {
+    // 檢查點擊的目標是否為「刪除按鈕」
     if (e.target.classList.contains('delete-btn')) {
         const block = e.target.closest('.photo-uploader');
         const index = parseInt(block.dataset.index);
@@ -453,13 +455,39 @@ photoInputsContainer.addEventListener('click', (e) => {
         photoBlocks.forEach((el, i) => {
             el.dataset.index = i;
             el.querySelector('label:nth-of-type(2)').textContent = `區域 ${i + 1}(可空白):`;
-            
             const fileInput = el.querySelector('.photo-input');
             fileInput.id = `photo-input-${i}`;
         });
         checkAddButtonVisibility();
-        // ✅ 刪除照片後更新按鈕狀態
         updateCombineButtonState();
+        return; 
+    }
+
+    // 檢查點擊的目標是否為重新拍照的預覽區塊
+    const retakeOverlay = e.target.closest('.photo-retake-overlay');
+    if (retakeOverlay) {
+        // 取得最上層的 .photo-uploader 區塊
+        const block = retakeOverlay.closest('.photo-uploader');
+        const fileInput = block.querySelector('.photo-input');
+        if (fileInput) {
+            // 直接觸發隱藏的 input 點擊事件
+            fileInput.click();
+        }
+        return; 
+    }
+
+    // 檢查點擊的目標是否為預設的預覽區塊（即尚未上傳照片的區塊）
+    const previewContainer = e.target.closest('.photo-preview-container');
+    if (previewContainer) {
+        // 取得最上層的 .photo-uploader 區塊
+        const block = previewContainer.closest('.photo-uploader');
+        if (block) {
+            const fileInput = block.querySelector('.photo-input');
+            if (fileInput) {
+                // 直接觸發隱藏的 input 點擊事件
+                fileInput.click();
+            }
+        }
     }
 });
 
@@ -727,8 +755,8 @@ combineBtn.addEventListener('click', async () => {
             if (auth.currentUser) {
                 const userId = auth.currentUser.uid;
                 const recordData = {
-                    userId: userId,          
-                    docId: currentDocId,      
+                    userId: userId, 
+                    docId: currentDocId, 
                     className: className,
                     date: new Date(),
                     photos: photosWithText,
@@ -799,4 +827,3 @@ combineBtn.addEventListener('click', async () => {
         finalImage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
 });
-
