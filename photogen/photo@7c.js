@@ -6,12 +6,13 @@ import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.g
 import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
-// Firebase Config (匿名登入可不隱藏)
+const open_upload = true;
+
 const __firebase_config = {
     apiKey: "AIzaSyD5Qk5UrYr2nZHwvP5v_x_p9URBXxsEQ1w",
     authDomain: "project1-65fd2.firebaseapp.com",
     projectId: "project1-65fd2",
-    storageBucket: "project1-65fd2.appspot.com",  
+    storageBucket: "project1-65fd2.appspot.com",  
     messagingSenderId: "1092092998314",
     appId: "1:1092092998314:web:82615aa69da6897ccb16d3",
     measurementId: "G-2QX78R2CST"
@@ -19,9 +20,9 @@ const __firebase_config = {
 
 const __app_id = "1:1092092998314:web:82615aa69da6897ccb16d3";
 
-let db, auth, storage;   // ✅ 加入 storage
+let db, auth, storage;  
 let __initial_auth_token;
-let userLocation = null;  
+let userLocation = null;  
 
 window.onload = function() {
     const firebaseConfig = __firebase_config;
@@ -30,7 +31,7 @@ window.onload = function() {
         const app = initializeApp(firebaseConfig);
         auth = getAuth(app);
         db = getFirestore(app);
-        storage = getStorage(app);   // ✅ 初始化 Storage
+        storage = getStorage(app);  
 
         if (__initial_auth_token) {
             signInWithCustomToken(auth, __initial_auth_token).then(() => {
@@ -54,7 +55,6 @@ window.onload = function() {
         console.error("Firebase 配置缺失，請確認 Canvas 變數是否正確提供。");
     }
 
-    //取得位置
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -73,15 +73,9 @@ window.onload = function() {
     }
 }
 window.addEventListener('beforeunload', (event) => {
-    // 檢查是否有上傳任何照片
-    // 這裡假設 photoData.length > 1 或 photoData[0].image 存在時表示有照片
     const hasUploadedPhotos = photoData.some(p => p.image);
-
     if (hasUploadedPhotos) {
-        // 舊版瀏覽器需要設定 returnValue 屬性
         event.returnValue = '您的照片尚未儲存，確定要離開嗎？';
-        
-        // 對於現代瀏覽器，返回字串即可觸發確認框
         return '您的照片尚未儲存，確定要離開嗎？';
     }
 });
@@ -102,6 +96,11 @@ const infoBtn = document.getElementById('infoBtn');
 const infoModal = document.getElementById('infoModal');
 const closeButton = document.querySelector('.close-button');
 
+const cameraToggle = document.getElementById('cameraToggle');
+// ✅ 新增：取得文字標籤元素
+const toggleLabel = document.getElementById('toggleLabel');
+
+
 let isDrawing = false;
 let lastX = 0;
 let lastY = 0;
@@ -119,6 +118,26 @@ const defaultTexts = [
     "落地",
     "騎樓",
 ];
+
+// ✅ 新增：監聽開關的變動事件
+cameraToggle.addEventListener('change', () => {
+    if (cameraToggle.checked) {
+        toggleLabel.textContent = '用相機拍照';
+    } else {
+        toggleLabel.textContent = `選擇檔案(最多${MAX_PHOTOS}張)`;
+    }
+});
+
+// ✅ 新增函式：根據照片數量更新合併按鈕狀態
+function updateCombineButtonState() {
+    if (photoData.length > 0 && photoData.every(p => p.image)) {
+        combineBtn.classList.remove('button-disabled');
+        combineBtn.disabled = false;
+    } else {
+        combineBtn.classList.add('button-disabled');
+        combineBtn.disabled = true;
+    }
+}
 
 function createPhotoInputBlock(index) {
     const div = document.createElement('div');
@@ -139,8 +158,11 @@ function createPhotoInputBlock(index) {
     fileInput.type = 'file';
     fileInput.className = 'photo-input';
     fileInput.accept = 'image/*';
-    fileInput.capture = 'camera';
+    fileInput.multiple = true;
     fileInput.id = `photo-input-${index}`;
+    if (cameraToggle.checked) {
+        fileInput.setAttribute('capture', 'camera');
+    }
     div.appendChild(fileInput); 
 
     const photoAlert = document.createElement('span');
@@ -149,12 +171,13 @@ function createPhotoInputBlock(index) {
 
     const previewContainer = document.createElement('div');
     previewContainer.className = 'photo-preview-container';
-    // 使用 Unicode 相機圖示和文字，將它們包在一個新的 span 裡面
+    
     previewContainer.innerHTML = `
     <span class="photo-preview-content">
         <span class="camera-icon">📸</span>
         <span class="photo-preview-text">點擊選擇檔案</span>
     </span>
+    <div class="photo-loader hidden"></div>
     `;
 
     const textLabel = document.createElement('label');
@@ -172,6 +195,8 @@ function createPhotoInputBlock(index) {
     div.appendChild(previewContainer);
 
     photoInputsContainer.insertBefore(div, addPhotoBlock);
+
+    return div;
 }
 
 function createDatalist() {
@@ -194,14 +219,62 @@ function checkAddButtonVisibility() {
 }
 
 createDatalist();
-
-createPhotoInputBlock(0);
-photoData.push({});
 checkAddButtonVisibility();
+// ✅ 初始時禁用按鈕
+updateCombineButtonState();
 
 function hideAllAlerts() {
     document.querySelectorAll('.photo-alert').forEach(alert => {
         alert.classList.add('hidden');
+    });
+}
+
+async function processFile(file, index, block) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        const loader = block.querySelector('.photo-loader');
+        const previewContent = block.querySelector('.photo-preview-content');
+
+        if (loader) loader.classList.remove('hidden');
+        if (previewContent) previewContent.classList.add('hidden');
+
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                photoData[index].image = img;
+                block.querySelector('.photo-alert').classList.add('hidden');
+                
+                const previewContainer = block.querySelector('.photo-preview-container');
+                previewContainer.innerHTML = '';
+
+                const previewImg = document.createElement('img');
+                previewImg.className = 'photo-preview-image';
+                previewImg.src = e.target.result;
+                previewContainer.appendChild(previewImg);
+
+                const retakeOverlay = document.createElement('div');
+                retakeOverlay.className = 'photo-retake-overlay';
+                retakeOverlay.innerHTML = '<span class="camera-icon">📸</span> RETAKE';
+                previewContainer.appendChild(retakeOverlay);
+                
+                if (loader) loader.classList.add('hidden');
+                
+                setTimeout(() => {
+                    block.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center', 
+                        inline: 'nearest'
+                    });
+                }, 100);
+                
+                // ✅ 檔案處理完成後更新按鈕狀態
+                updateCombineButtonState();
+                resolve();
+            };
+            img.src = e.target.result;
+        };
+        
+        reader.readAsDataURL(file);
     });
 }
 
@@ -214,13 +287,16 @@ addPhotoBlock.addEventListener('click', () => {
             const alertElement = lastBlock.querySelector('.photo-alert');
             alertElement.textContent = '最多只能新增 8 張照片！';
             alertElement.classList.remove('hidden');
+            
+            setTimeout(() => {
+                lastBlock.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
         }
         return;
     }
-    
-    // 如果前一個區塊沒有照片，則給予提示，不新增
+
     const lastPhotoData = photoData[photoData.length - 1];
-    if (!lastPhotoData.image && photoData.length > 0) { // 確保不是第一個區塊
+    if (photoData.length > 0 && !lastPhotoData.image) {
         const lastBlock = document.querySelector(`.photo-uploader[data-index="${photoData.length - 1}"]`);
         if (lastBlock) {
             const alertElement = lastBlock.querySelector('.photo-alert');
@@ -233,31 +309,62 @@ addPhotoBlock.addEventListener('click', () => {
         return;
     }
 
-    const newIndex = photoData.length;
-    createPhotoInputBlock(newIndex);
-    photoData.push({});
-    checkAddButtonVisibility();
+    const tempInput = document.createElement('input');
+    tempInput.type = 'file';
+    tempInput.accept = 'image/*';
+    tempInput.multiple = true;
+    tempInput.style.display = 'none';
 
-    const newBlock = document.querySelector(`.photo-uploader[data-index="${newIndex}"]`);
-    if (newBlock) {
-        setTimeout(() => {
-            // 自動點擊新的檔案選擇輸入框
-            const newFileInput = newBlock.querySelector('.photo-input');
-            if (newFileInput) {
-                newFileInput.click();
-            }
-        }, 100);
+    if (cameraToggle.checked) {
+        tempInput.setAttribute('capture', 'camera');
     }
+    
+    document.body.appendChild(tempInput);
+
+    tempInput.addEventListener('change', async (e) => {
+        const files = e.target.files;
+        if (files.length > 0) {
+            const newIndex = photoData.length;
+            const remainingSlots = MAX_PHOTOS - newIndex;
+            
+            if (files.length > remainingSlots) {
+                let alertElement = document.getElementById('addPhotoBlock').querySelector('.photo-alert');
+                if (!alertElement) {
+                    alertElement = document.createElement('span');
+                    alertElement.className = 'photo-alert hidden';
+                    document.getElementById('addPhotoBlock').appendChild(alertElement);
+                }
+                
+                alertElement.textContent = `您已上傳 ${newIndex} 張照片，只能再新增 ${remainingSlots} 張。`;
+                alertElement.classList.remove('hidden');
+                
+                document.body.removeChild(tempInput);
+                return;
+            }
+
+            for (let i = 0; i < files.length; i++) {
+                const currentNewIndex = photoData.length;
+                const newBlock = createPhotoInputBlock(currentNewIndex);
+                photoData.push({});
+                await processFile(files[i], currentNewIndex, newBlock);
+            }
+        }
+        
+        document.body.removeChild(tempInput);
+        checkAddButtonVisibility();
+        // ✅ 新增照片後更新按鈕狀態
+        updateCombineButtonState();
+    });
+
+    tempInput.click();
 });
 
-// 取得警告橫幅元素
+
 const warningBanner = document.getElementById('warningBanner');
 const closeWarningBtn = document.querySelector('.warning-banner .close-btn');
 
-// 新增一個變數，追蹤橫幅是否已經顯示過
 let bannerHasBeenShown = false;
 
-// 為關閉按鈕添加點擊事件監聽器
 closeWarningBtn.addEventListener('click', () => {
     warningBanner.style.display = 'none';
 });
@@ -265,53 +372,49 @@ closeWarningBtn.addEventListener('click', () => {
 photoInputsContainer.addEventListener('change', async (e) => {
     if (e.target.classList.contains('photo-input')) {
         const block = e.target.closest('.photo-uploader');
-        const index = parseInt(block.dataset.index);
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            
-            reader.onload = (e) => {
-                const img = new Image();
-                img.onload = () => {
-                    photoData[index].image = img;
-                    block.querySelector('.photo-alert').classList.add('hidden');
-                    
-                    if (!bannerHasBeenShown) {
-                        warningBanner.style.display = 'block';
-                        bannerHasBeenShown = true;
-                    }
+        const files = e.target.files;
 
-                    const previewContainer = block.querySelector('.photo-preview-container');
-                    previewContainer.innerHTML = ''; // 清空原有內容
-
-                    const previewImg = document.createElement('img');
-                    previewImg.className = 'photo-preview-image'; // 使用新的 class 名稱
-                    previewImg.src = e.target.result;
-                    previewContainer.appendChild(previewImg);
-
-                    // 新增 RETAKE 提示層
-                    const retakeOverlay = document.createElement('div');
-                    retakeOverlay.className = 'photo-retake-overlay';
-                    retakeOverlay.innerHTML = '<span class="camera-icon">📸</span> RETAKE';
-                    previewContainer.appendChild(retakeOverlay);
-                };
-                img.src = e.target.result;
-            };
-            
-            reader.readAsDataURL(file);
-
-            setTimeout(() => {
-                block.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'center', 
-                    inline: 'nearest'
-                });
-            }, 100);
+        if (files.length === 0) {
+            return;
         }
-    }
+        
+        const currentPhotoCount = photoData.length;
+        const newFileCount = files.length;
+        const remainingSlots = MAX_PHOTOS - currentPhotoCount;
 
-    if (e.target.classList.contains('text-input')) {
-        e.target.blur();
+        if (newFileCount > remainingSlots) {
+            const alertElement = block.querySelector('.photo-alert');
+            alertElement.textContent = `您已上傳 ${currentPhotoCount} 張照片，一次最多只能再新增 ${remainingSlots} 張。`;
+            alertElement.classList.remove('hidden');
+            
+            e.target.value = '';
+            
+            setTimeout(() => {
+                block.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+            return;
+        }
+
+        let index = parseInt(block.dataset.index);
+        await processFile(files[0], index, block);
+
+        if (files.length > 1) {
+            for (let i = 1; i < files.length; i++) {
+                const currentNewIndex = photoData.length;
+                const newBlock = createPhotoInputBlock(currentNewIndex);
+                photoData.push({});
+                await processFile(files[i], currentNewIndex, newBlock);
+            }
+        }
+        
+        checkAddButtonVisibility();
+        // ✅ 改變照片後更新按鈕狀態
+        updateCombineButtonState();
+
+        if (!bannerHasBeenShown) {
+            warningBanner.style.display = 'block';
+            bannerHasBeenShown = true;
+        }
     }
 });
 
@@ -348,6 +451,8 @@ photoInputsContainer.addEventListener('click', (e) => {
             fileInput.id = `photo-input-${i}`;
         });
         checkAddButtonVisibility();
+        // ✅ 刪除照片後更新按鈕狀態
+        updateCombineButtonState();
     }
 });
 
@@ -364,9 +469,8 @@ function getClientCoordinates(event) {
     };
 }
 
-// 繪製提示文字
 function drawHintText(text) {
-    signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+    signatureCtx.clearRect(0, 0, 0, 0); // 清除整個畫布
     signatureCtx.fillStyle = '#888';
     signatureCtx.font = '20px Arial';
     signatureCtx.textAlign = 'center';
@@ -374,7 +478,6 @@ function drawHintText(text) {
     signatureCtx.fillText(text, signatureCanvas.width / 2, signatureCanvas.height / 2);
 }
 
-// 啟用/禁用簽名繪製
 function toggleDrawing(enable) {
     const drawingEvents = {
         'mousedown': startDrawing,
@@ -394,7 +497,6 @@ function toggleDrawing(enable) {
         signatureCanvas.classList.remove('disabled');
         signatureCanvas.classList.add('active');
         
-        // 新增: 啟用時，將「啟用簽名」按鈕變為灰色並禁用
         enableSignatureBtn.classList.add('button-disabled');
         enableSignatureBtn.disabled = true;
 
@@ -407,10 +509,6 @@ function toggleDrawing(enable) {
         }
         signatureCanvas.classList.remove('active');
         signatureCanvas.classList.add('disabled');
-        
-        // 新增: 禁用時，將「啟用簽名」按鈕恢復正常
-        enableSignatureBtn.classList.remove('button-disabled');
-        enableSignatureBtn.disabled = false;
         
         drawHintText('點擊「啟用簽名」開始');
     }
@@ -439,7 +537,6 @@ function startDrawing(e) {
     lastX = (clientCoords.x - rect.left) / rect.width * signatureCanvas.width;
     lastY = (clientCoords.y - rect.top) / rect.height * signatureCanvas.height;
     
-    // 只有當畫布上沒有內容時才清除提示文字
     if (!signatureDrawn) {
         signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
     }
@@ -488,7 +585,6 @@ function closeModal() {
     document.body.classList.remove('no-scroll');
 }
 
-// 綁定事件監聽器
 infoBtn.addEventListener('click', openModal);
 closeButton.addEventListener('click', closeModal);
 infoModal.addEventListener('click', (e) => {
@@ -497,10 +593,25 @@ infoModal.addEventListener('click', (e) => {
     }
 });
 
-// 每次刷新頁面時生成一個新的 document ID
-let currentDocId = Date.now().toString(36) + Math.random().toString(36).substring(2, 10); // 每刷新頁面都會不同
+let currentDocId = Date.now().toString(36) + Math.random().toString(36).substring(2, 10);
 
 combineBtn.addEventListener('click', async () => {
+    // ✅ 關鍵修正：檢查是否有照片，沒有則直接顯示警告
+    if (photoData.length === 0) {
+        // 使用 addPhotoBlock 的警示區塊
+        let alertElement = document.getElementById('addPhotoBlock').querySelector('.photo-alert');
+        if (!alertElement) {
+            alertElement = document.createElement('span');
+            alertElement.className = 'photo-alert hidden';
+            document.getElementById('addPhotoBlock').appendChild(alertElement);
+        }
+        
+        alertElement.textContent = '請至少上傳一張照片才能合併！';
+        alertElement.classList.remove('hidden');
+        return; // 中止後續動作
+    }
+
+
     let hasError = false;
     hideAllAlerts();
     let firstErrorBlock = null;
@@ -529,7 +640,6 @@ combineBtn.addEventListener('click', async () => {
     document.getElementById("output-section").style.display = "block";
     const selectedPhotos = photoData.filter(p => p.image);
 
-    // 清空畫布
     ctx.fillStyle = '#FFFFFF';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.shadowColor = 'transparent';
@@ -596,39 +706,40 @@ combineBtn.addEventListener('click', async () => {
     const now = new Date();
     const dateTimeString = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
     const className = classNameInput.value || '未輸入班別';
+    
+    if (open_upload) {
+        const photosWithText = photoData.filter(p => p.image).map(p => ({ text: p.text || '' }));
+        const userAgent = navigator.userAgent;
+        const signatureBase64 = signatureDrawn ? signatureCanvas.toDataURL('image/png') : null;
 
-    /** 上傳資料 */
-    const photosWithText = photoData.filter(p => p.image).map(p => ({ text: p.text || '' }));
-    const userAgent = navigator.userAgent;
-    const signatureBase64 = signatureDrawn ? signatureCanvas.toDataURL('image/png') : null;
+        try {
+            if (auth.currentUser) {
+                const userId = auth.currentUser.uid;
+                const recordData = {
+                    userId: userId,          
+                    docId: currentDocId,      
+                    className: className,
+                    date: new Date(),
+                    photos: photosWithText,
+                    signatureImage: signatureBase64,
+                    userAgent: userAgent,
+                    location: userLocation 
+                };
 
-    try {
-        if (auth.currentUser) {
-            const userId = auth.currentUser.uid;
-            const recordData = {
-                userId: userId,           // 標示是誰上傳
-                docId: currentDocId,      // 標示這筆資料唯一 ID
-                className: className,
-                date: new Date(),
-                photos: photosWithText,
-                signatureImage: signatureBase64,
-                userAgent: userAgent,
-                location: userLocation 
-            };
+                const docRef = doc(db, `artifacts/${__app_id}/records`, currentDocId);
+                await setDoc(docRef, recordData);
 
-            // 使用 currentDocId 作為 document ID，每刷新頁面就會不同
-            const docRef = doc(db, `artifacts/${__app_id}/records`, currentDocId);
-            await setDoc(docRef, recordData);
-
-            console.log("資料已成功儲存或更新，ID:", currentDocId);
-        } else {
-            console.error("無法儲存資料，使用者未登入或匿名登入失敗。");
+                console.log("資料已成功儲存或更新，ID:", currentDocId);
+            } else {
+                console.error("無法儲存資料，使用者未登入或匿名登入失敗。");
+            }
+        } catch (e) {
+            console.error("寫入資料失敗:", e);
         }
-    } catch (e) {
-        console.error("寫入資料失敗:", e);
+    } else {
+        console.log("上傳功能已關閉，未將資料傳送至 Firebase。");
     }
 
-    /** 畫布加上時間、班別、簽名 */
     const textYOffset = canvas.height * 0.95;
     const mainPadding = 50;
 
@@ -672,35 +783,7 @@ combineBtn.addEventListener('click', async () => {
     const imageURL = canvas.toDataURL('image/jpeg', 0.9);
     finalImage.src = imageURL;
     finalImage.style.display = 'block';
-/*圖片上傳storage
-   try {
-        if (auth.currentUser) {
-            // 建立檔案路徑（以 currentDocId 當檔名）
-            const storageRef = ref(storage, `finalImages/${currentDocId}.jpg`);
 
-            // 把 DataURL 轉成 Blob
-            const response = await fetch(imageURL);
-            const blob = await response.blob();
-
-            // 上傳到 Firebase Storage
-            await uploadBytes(storageRef, blob);
-            console.log("✅ 合成圖片已上傳");
-
-            // 取得公開的下載連結
-            const downloadURL = await getDownloadURL(storageRef);
-            console.log("🌐 下載連結:", downloadURL);
-
-            // 可選：把連結存到 Firestore
-            const docRef = doc(db, `artifacts/${__app_id}/records`, currentDocId);
-            await setDoc(docRef, { finalImageURL: downloadURL }, { merge: true });
-            console.log("📂 Firestore 已更新合成圖片連結");
-        } else {
-            console.warn("尚未登入 Firebase，無法上傳圖片");
-        }
-    } catch (error) {
-        console.error("❌ 上傳合成圖片失敗:", error);
-    }
-*/
     setTimeout(() => {
         finalImage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
