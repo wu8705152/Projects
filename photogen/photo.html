@@ -7,20 +7,20 @@
 
 <style>
 body {
-  user-select: none; /* 禁用整個網頁的文字選取功能 */
-  -webkit-user-select: none; /* 針對 Safari 瀏覽器 */
-  -moz-user-select: none; /* 針對 Firefox 瀏覽器 */
-  -ms-user-select: none; /* 針對 IE/Edge 瀏覽器 */
-  font-family: Arial, sans-serif;
-  background-color: #f4f4f4;
-  color: #333;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  margin: 0;
-  padding: 20px;
+    user-select: none; /* 禁用整個網頁的文字選取功能 */
+    -webkit-user-select: none; /* 針對 Safari 瀏覽器 */
+    -moz-user-select: none; /* 針對 Firefox 瀏覽器 */
+    -ms-user-select: none; /* 針對 IE/Edge 瀏覽器 */
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    padding: 20px;
 }
 
 .warning-banner {
@@ -173,6 +173,31 @@ input[type="text"], input[type="file"], select {
 /* 隱藏原本的檔案上傳按鈕 */
 .photo-input {
     display: none;
+}
+/*loading*/
+/* Loading 提示 */
+.photo-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 30px;
+    height: 30px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 10;
+}
+
+.photo-loader.hidden {
+    display: none;
+}
+
+/* 動畫效果 */
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
 /* 圖片預覽容器的基本樣式 */
@@ -489,6 +514,75 @@ footer{
     margin-top: 5px;
     text-align: center;
 }
+
+/* 新增開關樣式 */
+.option-toggle-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.toggle-label {
+    font-size: 16px;
+    color: #555;
+    user-select: none; /* 避免文字被選取 */
+}
+
+/* 開關主體 */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 48px;
+    height: 28px;
+}
+
+/* 隱藏預設的 input */
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+/* 滑動軌道 */
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 28px;
+}
+
+/* 滑動圓點 */
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+/* 啟用時的樣式 */
+input:checked + .slider {
+    background-color: #2196F3;
+}
+
+input:focus + .slider {
+    box-shadow: 0 0 1px #2196F3;
+}
+
+/* 啟用時圓點向右移動 */
+input:checked + .slider:before {
+    transform: translateX(20px);
+}
 </style>
 </head>
 <body>
@@ -509,6 +603,13 @@ footer{
             </datalist>
         </div>
 
+        <div class="option-toggle-container">
+            <label class="toggle-switch">
+                <input type="checkbox" id="cameraToggle" checked>
+                <span class="slider"></span>
+            </label>
+            <span class="toggle-label" id="toggleLabel">用相機拍照</span>
+        </div>
         <div id="photoInputsContainer">
             <div id="addPhotoBlock">
                 <span>+</span>
@@ -556,6 +657,6 @@ footer{
     <p><strong>免責聲明：</strong>本網頁僅作為圖片處理工具，供個人使用，不提供檔案儲存或備份服務。使用者須自行確保所上傳內容之合法性與正確性。本網頁及開發者對於因使用本網頁所產生或引發之任何後果，概不負責。</p>
 </footer>
 </div>
-<script type="module" src="photo@7c.js"></script>
+<script type="module" src="photo_v2@1.js"></script>
 </body>
 </html>
