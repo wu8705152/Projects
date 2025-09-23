@@ -6,7 +6,7 @@ import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.g
 import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
-const open_upload = true;
+const open_upload = false;
 
 const __firebase_config = {
     apiKey: "AIzaSyD5Qk5UrYr2nZHwvP5v_x_p9URBXxsEQ1w",
@@ -744,7 +744,7 @@ combineBtn.addEventListener('click', async () => {
 
     const now = new Date();
     const dateTimeString = `${now.getFullYear()}/${(now.getMonth()+1).toString().padStart(2,'0')}/${now.getDate().toString().padStart(2,'0')} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
-    const className = classNameInput.value || '未輸入班別';
+    const className = classNameInput.value || '';
     
     if (open_upload) {
         const photosWithText = photoData.filter(p => p.image).map(p => ({ text: p.text || '' }));
