@@ -508,15 +508,16 @@ function toggleDrawing(enable) {
         enableSignatureBtn.disabled = true;
 
         if(!signatureDrawn) {
+            signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
             drawHintText('開始簽名');
         }
     } else {
         for (let event in drawingEvents) {
-            signatureCanvas.removeEventListener(event, drawingEvents[event]);
+            signatureCanvas.removeEventListener(event, drawingEvents[event]);//清除畫布並
         }
         signatureCanvas.classList.remove('active');
         signatureCanvas.classList.add('disabled');
-        
+        signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);//清除畫布並
         drawHintText('點擊「啟用簽名」開始');
     }
 }
