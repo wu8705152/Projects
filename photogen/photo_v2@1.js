@@ -119,12 +119,19 @@ const defaultTexts = [
     "騎樓",
 ];
 
-// ✅ 新增：監聽開關的變動事件
+// ✅ 新增：取得新增照片的圖示元素
+const addIcon = document.getElementById('addIcon');
+
+// ✅ 監聽開關的變動事件，並更新文字和圖示
 cameraToggle.addEventListener('change', () => {
     if (cameraToggle.checked) {
+        // 開啟相機模式
         toggleLabel.textContent = '用相機拍照';
+        addIcon.innerHTML = '📸'; // 使用相機圖示
     } else {
-        toggleLabel.textContent = `選擇檔案(最多${MAX_PHOTOS}張)`;
+        // 選擇檔案模式
+        toggleLabel.textContent = '選擇檔案';
+        addIcon.innerHTML = '📁'; // 使用檔案夾圖示
     }
 });
 
