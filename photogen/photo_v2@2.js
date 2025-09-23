@@ -6,7 +6,7 @@ import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.g
 import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
-const open_upload = true;
+const open_upload = false;
 
 const __firebase_config = {
     apiKey: "AIzaSyD5Qk5UrYr2nZHwvP5v_x_p9URBXxsEQ1w",
@@ -560,6 +560,9 @@ function clearSignature() {
     signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
     signatureDrawn = false;
     toggleDrawing(false); 
+
+    enableSignatureBtn.classList.remove('button-disabled');
+    enableSignatureBtn.disabled = false;
 }
 
 function initSignatureCanvas() {
