@@ -6,13 +6,13 @@ import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.g
 import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
-const open_upload = true;
+const open_upload = false; // 只有 true 才需要登入 Firebase
 
 const __firebase_config = {
     apiKey: "AIzaSyD5Qk5UrYr2nZHwvP5v_x_p9URBXxsEQ1w",
     authDomain: "project1-65fd2.firebaseapp.com",
     projectId: "project1-65fd2",
-    storageBucket: "project1-65fd2.appspot.com",  
+    storageBucket: "project1-65fd2.appspot.com",
     messagingSenderId: "1092092998314",
     appId: "1:1092092998314:web:82615aa69da6897ccb16d3",
     measurementId: "G-2QX78R2CST"
@@ -20,53 +20,59 @@ const __firebase_config = {
 
 const __app_id = "1:1092092998314:web:82615aa69da6897ccb16d3";
 
-let db, auth, storage;  
+let db, auth, storage;  
 let __initial_auth_token;
-let userLocation = null;  
+let userLocation = null;  
 
 window.onload = function() {
-    const firebaseConfig = __firebase_config;
+    // 只有 open_upload = true 時才初始化 Firebase
+    if (open_upload) {
+        const firebaseConfig = __firebase_config;
 
-    if (Object.keys(firebaseConfig).length > 0) {
-        const app = initializeApp(firebaseConfig);
-        auth = getAuth(app);
-        db = getFirestore(app);
-        storage = getStorage(app);  
+        if (Object.keys(firebaseConfig).length > 0) {
+            const app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+            storage = getStorage(app);  
 
-        if (__initial_auth_token) {
-            signInWithCustomToken(auth, __initial_auth_token).then(() => {
-                console.log("已使用自訂權杖登入 Firebase");
-            }).catch((error) => {
-                console.error("自訂權杖登入失敗: ", error);
+            if (__initial_auth_token) {
+                signInWithCustomToken(auth, __initial_auth_token).then(() => {
+                    console.log("已使用自訂權杖登入 Firebase");
+                }).catch((error) => {
+                    console.error("自訂權杖登入失敗: ", error);
+                    signInAnonymously(auth).then(() => {
+                        console.log("已匿名登入 Firebase (備用)");
+                    }).catch((error) => {
+                        console.error("匿名登入失敗: ", error);
+                    });
+                });
+            } else {
                 signInAnonymously(auth).then(() => {
-                    console.log("已匿名登入 Firebase (備用)");
+                    console.log("已匿名登入 Firebase");
                 }).catch((error) => {
                     console.error("匿名登入失敗: ", error);
                 });
-            });
+            }
         } else {
-            signInAnonymously(auth).then(() => {
-                console.log("已匿名登入 Firebase");
-            }).catch((error) => {
-                console.error("匿名登入失敗: ", error);
-            });
+            console.error("Firebase 配置缺失，請確認 Canvas 變數是否正確提供。");
         }
     } else {
-        console.error("Firebase 配置缺失，請確認 Canvas 變數是否正確提供。");
+        console.log("open_upload = false，跳過 Firebase 初始化與登入");
     }
 
+    // 位置功能仍然可以保留，不受 open_upload 影響
     if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(
-        (position) => {
-            userLocation = {
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-            };
-            console.log("已取得位置:", userLocation);
-        },
-        (error) => {
-            console.error("無法取得定位資訊:", error.message);
-        }
+            (position) => {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                console.log("已取得位置:", userLocation);
+            },
+            (error) => {
+                console.error("無法取得定位資訊:", error.message);
+            }
         );
     } else {
         console.error("此瀏覽器不支援定位功能");
@@ -750,7 +756,7 @@ combineBtn.addEventListener('click', async () => {
         const photosWithText = photoData.filter(p => p.image).map(p => ({ text: p.text || '' }));
         const userAgent = navigator.userAgent;
         const signatureBase64 = signatureDrawn ? signatureCanvas.toDataURL('image/png') : null;
-
+        /**firebase 資料庫寫入 */
         try {
             if (auth.currentUser) {
                 const userId = auth.currentUser.uid;
@@ -823,8 +829,39 @@ combineBtn.addEventListener('click', async () => {
     finalImage.src = imageURL;
     finalImage.style.display = 'block';
 
+    /*圖片上傳storage (目前會失效 但不影響)
+    if (open_upload && auth.currentUser) {
+        (async () => {
+            try {
+                // 建立檔案路徑
+                const storageRef = ref(storage, `finalImages/${currentDocId}.jpg`);
+
+                // 把 DataURL 轉成 Blob
+                const response = await fetch(imageURL);
+                const blob = await response.blob();
+
+                // 上傳到 Firebase Storage
+                await uploadBytes(storageRef, blob);
+                console.log("✅ 合成圖片已上傳");
+
+                // 取得公開的下載連結
+                const downloadURL = await getDownloadURL(storageRef);
+                console.log("🌐 下載連結:", downloadURL);
+
+                // Firestore 更新
+                const docRef = doc(db, `artifacts/${__app_id}/records`, currentDocId);
+                await setDoc(docRef, { finalImageURL: downloadURL }, { merge: true });
+                console.log("📂 Firestore 已更新合成圖片連結");
+
+            } catch (error) {
+                console.error("❌ 上傳合成圖片失敗:", error);
+            }
+        })();
+    } else {
+        console.log("關閉上傳圖片或尚未登入 Firebase");
+    }*/
+    
     setTimeout(() => {
         finalImage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
 });
-
