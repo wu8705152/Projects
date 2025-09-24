@@ -6,7 +6,7 @@ import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.g
 import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
-const open_upload = false; // 只有 true 才需要登入 Firebase
+const open_upload = true; // 只有 true 才需要登入 Firebase
 
 const __firebase_config = {
     apiKey: "AIzaSyD5Qk5UrYr2nZHwvP5v_x_p9URBXxsEQ1w",
@@ -25,6 +25,10 @@ let __initial_auth_token;
 let userLocation = null;  
 
 window.onload = function() {
+    // 根據 open_upload 的值顯示雲朵圖示
+    if (open_upload) {
+        cloudIcon.classList.remove('hidden');
+    }
     // 只有 open_upload = true 時才初始化 Firebase
     if (open_upload) {
         const firebaseConfig = __firebase_config;
@@ -859,8 +863,8 @@ combineBtn.addEventListener('click', async () => {
         })();
     } else {
         console.log("關閉上傳圖片或尚未登入 Firebase");
-    }*/
-    
+    }
+    */
     setTimeout(() => {
         finalImage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
