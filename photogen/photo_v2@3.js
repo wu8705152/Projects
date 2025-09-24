@@ -6,7 +6,7 @@ import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.g
 import { getFirestore, collection, addDoc, getDoc, doc } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-storage.js";
 
-const open_upload = false;
+const open_upload = true;
 
 const __firebase_config = {
     apiKey: "AIzaSyD5Qk5UrYr2nZHwvP5v_x_p9URBXxsEQ1w",
@@ -827,3 +827,4 @@ combineBtn.addEventListener('click', async () => {
         finalImage.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }, 100);
 });
+
