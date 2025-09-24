@@ -74,7 +74,17 @@ h1 {
     justify-content: center;
     align-items: center;
 }
+.cloud-icon {
+   font-size: 20px;
+   color: #007bff;
+   margin-left: 10px;
+   align-self: center; /* 讓圖示與 h1 內容垂直對齊 */
+}
 
+/* 預設隱藏，等待 JS 啟用 */
+.cloud-icon.hidden {
+   display: none;
+}
 .info-icon {
     margin-left: 10px;
     background-color: #007bff;
@@ -592,7 +602,7 @@ input:checked + .slider:before {
 </div>
     <div class="container">
         <h1>排面拼貼照產生器<span id="infoBtn" class="info-icon">!</span></h1>
-
+        <span id="cloudIcon" class="cloud-icon hidden">☁️</span>
         <div class="controls">
             <label for="className">班別:</label>
             <input list="classSuggestions" id="className" placeholder="請輸入班別">
@@ -660,6 +670,6 @@ input:checked + .slider:before {
     <p><strong>免責聲明：</strong>本網頁僅作為圖片處理工具，供個人使用，不提供檔案儲存或備份服務。使用者須自行確保所上傳內容之合法性與正確性。本網頁及開發者對於因使用本網頁所產生或引發之任何後果，概不負責。</p>
 </footer>
 </div>
-<script type="module" src="photo_v2@3.js"></script>
+<script type="module" src="photo_v2@1.js"></script>
 </body>
 </html>
