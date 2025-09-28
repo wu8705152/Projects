@@ -6,11 +6,11 @@
   <script>
     // 一開啟就直接跳轉
     window.onload = function() {
+      var ts = new Date().getTime();
       //window.location.href = "photogen/photo.html"; 
-      window.location.href = "https://phpstack-1527334-5882729.cloudwaysapps.com/photo_comcination/signature_c.html";
+      window.location.href = "https://phpstack-1527334-5882729.cloudwaysapps.com/photo_comcination/signature_c.html?ts=" + ts;
     };
-
-    // 如果想延遲 3 秒才跳轉：
+   // 如果想延遲 3 秒才跳轉：
     // setTimeout(() => { window.location.href = "https://www.google.com"; }, 3000);
   </script>
 </head>
